@@ -13,6 +13,7 @@ class vötschFake:
     def __init__(self):
         self.temp = 27.1
 
+
     def setTempActual(self, temp):
         self.temp = temp
 
@@ -32,30 +33,35 @@ class vötschFake:
         else:
             return "'" + command + "' is an unknown command."
 
+    def theSocket(self):
+        HOST = ''  # Symbolic name meaning all available interfaces
+        PORT = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((HOST, PORT))
+            s.listen(1)
+            conn, addr = s.accept()
+            with conn:
+                print('Connected by', addr, "\n")
+                while True:
+                    data = conn.recv(1024)
+                    receivedCommand = data.decode('utf-8')
+                    print("Received: ", receivedCommand.strip(), "")
+                    if not data: break
+                    response = bytes(self.responseFunction(data.decode('utf-8')) + '\r\n', 'utf-8')
+                    conn.sendall(response)
+
+        print("Socket is shut down or closed. Please restart.")
 
 
+def newMain():
+    v = vötschFake()
+    v.theSocket()
 
-def main():
-    HOST = ''  # Symbolic name meaning all available interfaces
-    PORT = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
-        s.listen(1)
-        conn, addr = s.accept()
-        with conn:
-            print('Connected by', addr, "\n")
-            while True:
-                data = conn.recv(1024)
-                receivedCommand = data.decode('utf-8')
-                print("Received: ", receivedCommand.strip(), "")
-                if not data: break
-                response = bytes(vötschFake().responseFunction(data.decode('utf-8'))+'\r', 'utf-8')
-                conn.sendall(response)
-
-    print("Socket is shut down or closed. Please restart.")
 
 
 if __name__ == '__main__':
-    main()
+    newMain()
+    #main()
+
 
             

@@ -1,10 +1,40 @@
 import votschSocket
 import unittest
+import unittest.mock
+import sys
+from io import StringIO
 
-class vötschFake_Tests(unittest.TestCase):
+class main_Tests(unittest.TestCase):
+
     def setUp(self):
         self.v = votschSocket.vötschFake()
+        self.stdout = StringIO()
+        sys.stdout = self.stdout
 
+
+    def tearDown(self):
+        sys.stdout = sys.__stdout__
+
+
+    def testSkriv(self):
+        print("hej")
+
+        self.assertEqual(self.stdout.getvalue().strip(), "hej")
+        self.assertTrue(self.stdout.getvalue().startswith("hej"))
+
+
+    def testPrint(self):
+        command = "$01I"
+        response = self
+
+    def testMain1(self):
+        #m = votschSocket.main()
+        print("Success")
+        self.assertTrue(self.stdout.getvalue().startswith("Success"))
+
+class response_Tests(unittest.TestCase):
+    def setUp(self):
+        self.v = votschSocket.vötschFake()
     def testQuery(self):
         command = "$01I"
         response = self.v.responseFunction(command)

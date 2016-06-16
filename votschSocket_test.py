@@ -4,6 +4,7 @@ import unittest.mock
 import sys
 from io import StringIO
 
+
 class main_Tests(unittest.TestCase):
 
     def setUp(self):
@@ -32,9 +33,12 @@ class main_Tests(unittest.TestCase):
         print("Success")
         self.assertTrue(self.stdout.getvalue().startswith("Success"))
 
+
 class response_Tests(unittest.TestCase):
+
     def setUp(self):
         self.v = votschSocket.vötschFake()
+
     def testQuery(self):
         command = "$01I"
         response = self.v.responseFunction(command)

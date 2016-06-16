@@ -5,6 +5,8 @@
 
 # From https://docs.python.org/3/library/socket.html#example
 
+# TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
+
 
 # Echo server program
 import socket

@@ -1,8 +1,32 @@
 import votschSocket
 import unittest
-import unittest.mock
+import socketserver
+import socket
+#import unittest.mock
 import sys
 from io import StringIO
+
+
+class handler_Tests(unittest.TestCase):
+    def testPass(self):
+        pass
+    def qtest1(self):
+        """Set up basic communication with socket server"""
+        HOST, PORT = 'localhost', 9999
+        # Create the server, binding to localhost on port 9999
+        server = socketserver.TCPServer((HOST, PORT), votschSocket.MyTCPHandler)
+        server.server_activate()
+        #server.serve_forever()
+        #print("test1 started")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((HOST, PORT))
+            sock.sendall(b"my message")
+
+            r = sock.recv(1024)
+            print("type(r) == ", type(r))
+            #received = str(r, "utf-8")
+
+        self.assertEqual(r, "my message")
 
 
 class main_Tests(unittest.TestCase):
@@ -71,3 +95,6 @@ class response_Tests(unittest.TestCase):
         response = self.v.responseFunction(command)
         self.assertTrue(response.startswith("ASCII"))
 
+
+if __name__ == "__main__":
+    unittest.main()

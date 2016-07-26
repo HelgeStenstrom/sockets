@@ -7,10 +7,14 @@
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
 
+"""
+Mimic a Vötsch climate chamber, such as it appears on the local IP network.
+"""
 
 # Echo server program
 import socket
 import socketserver
+import argparse
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
@@ -25,6 +29,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 class vötschFake:
     def __init__(self):
         self.temp = 27.1
+        self.vm = 'Vc'
 
 
     def setTempActual(self, temp):
@@ -36,7 +41,11 @@ class vötschFake:
     def responseFunction(self, command):
         command = command.strip()
         if command.startswith("$01I"):
-            response = self.format(self.temp) + "0019.7 " + 14 * "0000.1 " + 32 * "0" + "\r"
+            # Depending on Vötsch model, the format is different.
+            # Vt 3 7060: n = 14
+            # Vc 3 7060: n = 12
+            n = {'Vc':12, 'Vt':14}[self.vm]
+            response = self.format(self.temp) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
             return response
         elif command.startswith("$01?"):
             return "ASCII description of the protocol"
@@ -67,14 +76,21 @@ class vötschFake:
 
 
 def newMain():
+    parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
+    #parser.add_argument('--port', type=int, default=2049, help='TCP port to listen to.')
+    #parser.add_argument('--host', default='localhost', help='The host / IP address to listen at.')
+    #parser.add_argument('--loglevel', default='INFO', help='log level', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+    parser.add_argument('CcType', help='Type of Vötsch model', choices=['Vc', 'Vt'])
+    args = parser.parse_args()
+    
     v = vötschFake()
+    v.vm = args.CcType
     v.theSocket()
 
 
 
 if __name__ == '__main__':
     newMain()
-    #main()
 
 
             

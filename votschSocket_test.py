@@ -4,6 +4,9 @@ import unittest.mock
 import sys
 from io import StringIO
 
+# Idé: jag vill ha ett beteende som kan pluggas i, så att jag lätt kan simulera olika instrument.
+# Lätt byta mellan Vötsch och ett SCPI-instrument.
+# Därmed ändras Vötsch till ett allmänt instrumnt, och olika instrument har olika response-funktioner.
 
 class main_Tests(unittest.TestCase):
 
@@ -18,6 +21,7 @@ class main_Tests(unittest.TestCase):
 
 
     def testSkriv(self):
+        "Utskrifter kan testas"
         print("hej")
 
         self.assertEqual(self.stdout.getvalue().strip(), "hej")
@@ -71,3 +75,5 @@ class response_Tests(unittest.TestCase):
         response = self.v.responseFunction(command)
         self.assertTrue(response.startswith("ASCII"))
 
+if __name__ == '__main__':
+    unittest.main()

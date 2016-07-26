@@ -29,7 +29,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 class vötschFake:
     def __init__(self):
         self.temp = 27.1
-        self.vm = 'Vc'
+        self.CcType = 'Vc'
+        self.port = 2049
 
 
     def setTempActual(self, temp):
@@ -44,7 +45,7 @@ class vötschFake:
             # Depending on Vötsch model, the format is different.
             # Vt 3 7060: n = 14
             # Vc 3 7060: n = 12
-            n = {'Vc':12, 'Vt':14}[self.vm]
+            n = {'Vc':12, 'Vt':14}[self.CcType]
             response = self.format(self.temp) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
             return response
         elif command.startswith("$01?"):
@@ -57,7 +58,7 @@ class vötschFake:
 
     def theSocket(self):
         HOST = ''  # Symbolic name meaning all available interfaces
-        PORT = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        PORT = self.port  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((HOST, PORT))
             s.listen(1)
@@ -84,7 +85,7 @@ def newMain():
     args = parser.parse_args()
     
     v = vötschFake()
-    v.vm = args.CcType
+    v.CcType = args.CcType
     v.theSocket()
 
 

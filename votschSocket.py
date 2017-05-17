@@ -16,6 +16,7 @@ import socket
 import socketserver
 import argparse
 
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
@@ -57,6 +58,7 @@ class vötschFake:
             return "'" + command + "' is an unknown command."
 
     def theSocket(self):
+        # TODO: flytta till en annan klass, så att den här klassen bara handlar om in-och utdata från Vötsch
         HOST = ''  # Symbolic name meaning all available interfaces
         PORT = self.port  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -76,7 +78,7 @@ class vötschFake:
         print("Socket is shut down or closed. Please restart.")
 
 
-def newMain():
+def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     #parser.add_argument('--port', type=int, default=2049, help='TCP port to listen to.')
     #parser.add_argument('--host', default='localhost', help='The host / IP address to listen at.')
@@ -91,7 +93,7 @@ def newMain():
 
 
 if __name__ == '__main__':
-    newMain()
+    main()
 
 
             

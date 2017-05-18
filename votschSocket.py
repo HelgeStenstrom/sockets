@@ -11,10 +11,11 @@
 Mimic a Vötsch climate chamber, such as it appears on the local IP network.
 """
 
+import argparse
 # Echo server program
 import socket
 import socketserver
-import argparse
+from abc import abstractmethod, ABCMeta
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
@@ -27,35 +28,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         self.request.sendall(self.data.upper())
 
 
-class vötschFake:
+class socketInstrument(metaclass=ABCMeta):
     def __init__(self):
-        self.temp = 27.1
-        self.CcType = 'Vc'
         self.port = 2049
 
-
-    def setTempActual(self, temp):
-        self.temp = temp
-
-    def format(self, x):
-        return "%06.1f " % x
-
+    @abstractmethod
     def responseFunction(self, command):
-        command = command.strip()
-        if command.startswith("$01I"):
-            # Depending on Vötsch model, the format is different.
-            # Vt 3 7060: n = 14
-            # Vc 3 7060: n = 12
-            n = {'Vc':12, 'Vt':14}[self.CcType]
-            response = self.format(self.temp) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
-            return response
-        elif command.startswith("$01?"):
-            return "ASCII description of the protocol"
-        elif command.startswith("$01E"):
-            #print("Received command '", command[:-1], "'\n")
-            return ""
-        else:
-            return "'" + command + "' is an unknown command."
+        pass
 
     def theSocket(self):
         # TODO: flytta till en annan klass, så att den här klassen bara handlar om in-och utdata från Vötsch
@@ -78,22 +57,74 @@ class vötschFake:
         print("Socket is shut down or closed. Please restart.")
 
 
+class vötschBySocket(socketInstrument):
+    def __init__(self):
+        super(vötschBySocket, self).__init__()
+        self.temp = 27.1
+        self.CcType = 'Vc'
+
+    def setTempActual(self, temp):
+        self.temp = temp
+
+    def format(self, x):
+        return "%06.1f " % x
+
+    def responseFunction(self, command):
+        command = command.strip()
+        if command.startswith("$01I"):
+            # Depending on Vötsch model, the format is different.
+            # Vt 3 7060: n = 14
+            # Vc 3 7060: n = 12
+            n = {'Vc': 12, 'Vt': 14}[self.CcType]
+            response = self.format(self.temp) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
+            return response
+        elif command.startswith("$01?"):
+            return "ASCII description of the protocol"
+        elif command.startswith("$01E"):
+            # print("Received command '", command[:-1], "'\n")
+            return ""
+        else:
+            return "'" + command + "' is an unknown command."
+
+
+class RotaryDiscBySocket(socketInstrument):
+    def __init__(self):
+        super(RotaryDiscBySocket, self).__init__()
+        self.idnString = "innco GmbH,CO3000,9711016,1.02.62"
+
+    def format(self, x):
+        return "%06.1f " % x
+
+    def responseFunction(self, command):
+        command = command.strip()
+        if command.upper() ==( "*IDN?"):
+            response = self.idnString
+            return response
+        elif command.startswith("$01?"):
+            return "ASCII description of the protocol"
+        elif command.startswith("$01E"):
+            return ""
+        else:
+            return "'" + command + "' is an unknown command."
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
-    #parser.add_argument('--port', type=int, default=2049, help='TCP port to listen to.')
-    #parser.add_argument('--host', default='localhost', help='The host / IP address to listen at.')
-    #parser.add_argument('--loglevel', default='INFO', help='log level', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
-    parser.add_argument('CcType', help='Type of Vötsch model', choices=['Vc', 'Vt'])
+    parser.add_argument('CcType', help='Type of Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
     args = parser.parse_args()
-    
-    v = vötschFake()
-    v.CcType = args.CcType
-    v.theSocket()
 
+    if args.CcType in ['Vc', 'Vt']:
+        attachedInstrument = vötschBySocket()
+        attachedInstrument.CcType = args.CcType
+
+    elif args.CcType in ['RotaryDisc']:
+        attachedInstrument = RotaryDiscBySocket()
+
+    else:
+        raise NotImplementedError
+
+    attachedInstrument.theSocket()
 
 
 if __name__ == '__main__':
     main()
-
-
-            

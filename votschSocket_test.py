@@ -11,7 +11,7 @@ from io import StringIO
 class main_Tests(unittest.TestCase):
 
     def setUp(self):
-        self.v = votschSocket.vötschFake()
+        self.v = votschSocket.vötschBySocket()
         self.stdout = StringIO()
         sys.stdout = self.stdout
 
@@ -41,7 +41,7 @@ class main_Tests(unittest.TestCase):
 class response_Tests(unittest.TestCase):
 
     def setUp(self):
-        self.v = votschSocket.vötschFake()
+        self.v = votschSocket.vötschBySocket()
 
     def testQuery(self):
         command = "$01I"

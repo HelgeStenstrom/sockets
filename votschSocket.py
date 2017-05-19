@@ -88,16 +88,33 @@ class vötschBySocket(socketInstrument):
 
 
 class RotaryDiscBySocket(socketInstrument):
+
+    # Current problems (related to OneTE VisaConnector):
+
+    # The OneTE VisaConnector sends unsupported commands, such as "*SRE 52", "*ESE 61" and "*CLS"
+    # They must be handled, or ignored gracefully.
+
+    # The OneTE VisaConnector use OPC (operation complete) functionality.
+    # There is something weird with the STB (status byte), causing an error in one of
+    # the Query.vi subVIs.
+
+    # Despite the errors, OneTE Query.vi returns a result. This result is the concatenation of several
+    # values returned by this driver. We don't want that. We want one result per query.
+
+    # We want to emulate a GPIB-attached instrument. To which extent can that be made, using sockets?
+    # It's the same VisaConnector.
+
     def __init__(self):
         super(RotaryDiscBySocket, self).__init__()
-        self.idnString = "innco GmbH,CO3000,9711016,1.02.62"
+        self.idnString = "innco GmbH,CO3000,python,1.02.62"
 
     def format(self, x):
         return "%06.1f " % x
 
     def responseFunction(self, command):
         command = command.strip()
-        if command.upper() ==( "*IDN?"):
+        # print("got command '%s'" % command)
+        if command.upper().startswith( "*IDN?"):
             response = self.idnString
             return response
         elif command.startswith("$01?"):
@@ -105,7 +122,7 @@ class RotaryDiscBySocket(socketInstrument):
         elif command.startswith("$01E"):
             return ""
         else:
-            return "'" + command + "' is an unknown command."
+            return "'" + command + "' is an unknown command.\n"
 
 
 def main():

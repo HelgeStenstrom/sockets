@@ -16,6 +16,7 @@ import argparse
 import socket
 import socketserver
 from abc import abstractmethod, ABCMeta
+import re
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
@@ -107,6 +108,20 @@ class RotaryDiscBySocket(socketInstrument):
     # We want to emulate a GPIB-attached instrument. To which extent can that be made, using sockets?
     # It's the same VisaConnector.
 
+    patternz = {
+        "en re": "vad den matchar",
+        "\*idn\?" : "is idn",
+        "\*opt\?" : "options"
+    }
+
+    def matchOf(self, commandString):
+        rePatterns = self.patternz.keys()
+        for p in rePatterns:
+            print("pattern %s" % p)
+            if re.search(p, commandString, re.I):
+                return self.patternz[p]
+        return "no match"
+
     def __init__(self):
         super(RotaryDiscBySocket, self).__init__()
         self.idnString = "innco GmbH,CO3000,python,1.02.62"
@@ -114,14 +129,13 @@ class RotaryDiscBySocket(socketInstrument):
         self.model = "CO3000"
         self.serial = "python"
         self.firmware = "1.02.62"
+        self.position = 0
+        self.speed = 2
+        self.degPerSecond = 4.6
 
     def getIdnString(self):
-        idnString = self.idnString
         idnString = self.vendor + ',' + self.model + ',' +  self.serial + ',' + self.firmware
         return idnString
-
-    def format(self, x):
-        return "%06.1f " % x
 
     def responseFunction(self, command):
         command = command.strip()
@@ -129,10 +143,6 @@ class RotaryDiscBySocket(socketInstrument):
         if command.upper().startswith( "*IDN?"):
             response = self.getIdnString()
             return response
-        elif command.startswith("$01?"):
-            return "ASCII description of the protocol"
-        elif command.startswith("$01E"):
-            return ""
         else:
             return "'" + command + "' is an unknown command.\n"
 

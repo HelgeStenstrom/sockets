@@ -13,7 +13,7 @@ class Tests_with_print(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testThatPrintoutsCanBeTested(self):
+    def qtestThatPrintoutsCanBeTested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
         print("some error", file=sys.stderr)
@@ -60,6 +60,10 @@ class rotary_Tests(unittest.TestCase):
     def testIdnReturnsIdentity(self):
         response = self.rd.responseFunction('*IDN?')
         self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
+
+    def testThatIdnGetsParsed(self):
+        self.assertEqual(self.rd.matchOf("*IDN? "), "is idn")
+        self.assertEqual(self.rd.matchOf("*opt? "), "options")
 
 
 class vötsch_response_Tests(unittest.TestCase):

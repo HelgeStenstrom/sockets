@@ -110,6 +110,15 @@ class RotaryDiscBySocket(socketInstrument):
     def __init__(self):
         super(RotaryDiscBySocket, self).__init__()
         self.idnString = "innco GmbH,CO3000,python,1.02.62"
+        self.vendor = "innco GmbH"
+        self.model = "CO3000"
+        self.serial = "python"
+        self.firmware = "1.02.62"
+
+    def getIdnString(self):
+        idnString = self.idnString
+        idnString = self.vendor + ',' + self.model + ',' +  self.serial + ',' + self.firmware
+        return idnString
 
     def format(self, x):
         return "%06.1f " % x
@@ -118,7 +127,7 @@ class RotaryDiscBySocket(socketInstrument):
         command = command.strip()
         # print("got command '%s'" % command)
         if command.upper().startswith( "*IDN?"):
-            response = self.idnString
+            response = self.getIdnString()
             return response
         elif command.startswith("$01?"):
             return "ASCII description of the protocol"

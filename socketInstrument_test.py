@@ -1,20 +1,18 @@
 import socketInstrument
-import unittest
+# import unittest
 import unittest.mock
 import sys
-from io import StringIO, BytesIO
-from argparse import ArgumentError
+# from io import StringIO, BytesIO
+# from argparse import ArgumentError
 
-# Idé: jag vill ha ett beteende som kan pluggas i, så att jag lätt kan simulera olika instrument.
-# Lätt byta mellan Vötsch och ett SCPI-instrument.
-# Därmed ändras Vötsch till ett allmänt instrumnt, och olika instrument har olika response-funktioner.
 
 class Tests_with_print(unittest.TestCase):
     def setUp(self):
-        #sys.stdout = None
         pass
+
     def tearDown(self):
         pass
+
     def testThatPrintoutsCanBeTested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
@@ -28,14 +26,14 @@ class main_Tests(unittest.TestCase):
 
         # Försök att undvika utskrift. Verkar inte fungera i PyCharm, troligen för att miljön kräver stdout.
         # Kanske det finns andra sätt i denna miljö.
-        #sys.stdout = StringIO()
-        #sys.stderr = StringIO()
+        # sys.stdout = StringIO()
+        # sys.stderr = StringIO()
         pass
 
     def tearDown(self):
-        #sys.stdout = sys.__stdout__
-        #sys.stderr = sys.__stderr__
-        #help(sys.stderr)
+        # sys.stdout = sys.__stdout__
+        # sys.stderr = sys.__stderr__
+        # help(sys.stderr)
         pass
 
     def testMain1(self):
@@ -51,6 +49,7 @@ class main_Tests(unittest.TestCase):
         print("a string to be tested")
         self.assertIn("a string to be tested", sys.stdout.getvalue())
 
+
 class rotary_Tests(unittest.TestCase):
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
@@ -61,7 +60,6 @@ class rotary_Tests(unittest.TestCase):
     def testIdnReturnsIdentity(self):
         response = self.rd.responseFunction('*IDN?')
         self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
-
 
 
 class vötsch_response_Tests(unittest.TestCase):
@@ -94,7 +92,6 @@ class vötsch_response_Tests(unittest.TestCase):
         tempString = response.split()[0]
         temp = float(tempString)
         self.assertEqual(17, temp)
-
 
     def testHelp(self):
         command = "$01?"

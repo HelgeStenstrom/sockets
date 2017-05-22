@@ -2,14 +2,27 @@ import socketInstrument
 import unittest
 import unittest.mock
 import sys
-from io import StringIO
+from io import StringIO, BytesIO
 from argparse import ArgumentError
 
 # Idé: jag vill ha ett beteende som kan pluggas i, så att jag lätt kan simulera olika instrument.
 # Lätt byta mellan Vötsch och ett SCPI-instrument.
 # Därmed ändras Vötsch till ett allmänt instrumnt, och olika instrument har olika response-funktioner.
 
-class realMain_Tests(unittest.TestCase):
+class main_Tests(unittest.TestCase):
+
+    def qsetUp(self):
+
+        # Försök att undvika utskrift. Verkar inte fungera i PyCharm, troligen för att miljön kräver stdout.
+        # Kanske det finns andra sätt i denna miljö.
+        #sys.stdout = StringIO()
+        #sys.stderr = StringIO()
+        pass
+
+    def tearDown(self):
+        #sys.stdout = sys.__stdout__
+        #sys.stderr = sys.__stderr__
+        pass
 
     def testMain1(self):
 

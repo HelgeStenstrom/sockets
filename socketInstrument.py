@@ -19,6 +19,9 @@ from abc import abstractmethod, ABCMeta
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
+    def q__init__(self):
+        pass
+
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()

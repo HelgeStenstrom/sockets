@@ -9,9 +9,22 @@ from argparse import ArgumentError
 # Lätt byta mellan Vötsch och ett SCPI-instrument.
 # Därmed ändras Vötsch till ett allmänt instrumnt, och olika instrument har olika response-funktioner.
 
+class Tests_with_print(unittest.TestCase):
+    def setUp(self):
+        #sys.stdout = None
+        pass
+    def tearDown(self):
+        pass
+    def testThatPrintoutsCanBeTested(self):
+        print("some text", file=sys.stdout)
+        self.assertIn("some text", sys.stdout.getvalue())
+        print("some error", file=sys.stderr)
+        self.assertIn("some error", sys.stderr.getvalue())
+
+
 class main_Tests(unittest.TestCase):
 
-    def qsetUp(self):
+    def setUp(self):
 
         # Försök att undvika utskrift. Verkar inte fungera i PyCharm, troligen för att miljön kräver stdout.
         # Kanske det finns andra sätt i denna miljö.
@@ -22,6 +35,7 @@ class main_Tests(unittest.TestCase):
     def tearDown(self):
         #sys.stdout = sys.__stdout__
         #sys.stderr = sys.__stderr__
+        #help(sys.stderr)
         pass
 
     def testMain1(self):
@@ -30,6 +44,24 @@ class main_Tests(unittest.TestCase):
         self.assertRaises(SystemExit, socketInstrument.main)
         # Denna metod failar, om den inte får Vt, Vc eller RotaryDisc som argument.
         # Annars så returnerar den aldrig. Den måste ha en separat tråd.
+
+    def testPrinting(self):
+        # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
+        # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
+        print("a string to be tested")
+        self.assertIn("a string to be tested", sys.stdout.getvalue())
+
+class rotary_Tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.RotaryDiscBySocket()
+
+    def tearDown(self):
+        pass
+
+    def testIdnReturnsIdentity(self):
+        response = self.rd.responseFunction('*IDN?')
+        self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
+
 
 
 class vötsch_response_Tests(unittest.TestCase):

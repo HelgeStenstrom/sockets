@@ -50,6 +50,7 @@ class main_Tests(unittest.TestCase):
         self.assertIn("a string to be tested", sys.stdout.getvalue())
 
 
+
 class rotary_Tests(unittest.TestCase):
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
@@ -61,9 +62,22 @@ class rotary_Tests(unittest.TestCase):
         response = self.rd.responseFunction('*IDN?')
         self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
 
-    def testThatIdnGetsParsed(self):
-        self.assertEqual(self.rd.matchOf("*IDN? "), "is idn")
-        self.assertEqual(self.rd.matchOf("*opt? "), "options")
+    def testThatSomeSimpleComandsGetParsed(self):
+        self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.rotaryHandlers.Idn)
+        self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.rotaryHandlers.Options)
+        self.assertEqual(self.rd.matchOf("CP"), "current position")
+        self.assertEqual(self.rd.matchOf("  BU  ; "), "business")
+
+
+    def testThatParametrizedComandsGetParsed(self):
+        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), "go to position", "negative fraction")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), "go to position", "postitive fraction")
+        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), "go to position", "integer argument")
+        # self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), "go to position", "speed in deg per second")
+
+    def testThatFaultyCommandsYieldsErrorMessage(self):
+        self.assertEqual(self.rd.matchOf("unknown"), "no match")
+        # self.assertEqual(self.rd.matchOf(" BU ; xx"), "no match")
 
 
 class vötsch_response_Tests(unittest.TestCase):

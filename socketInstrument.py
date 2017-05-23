@@ -90,6 +90,15 @@ class vötschBySocket(socketInstrument):
         else:
             return "'" + command + "' is an unknown command."
 
+class rotaryHandlers:
+    # Jag är tveksam om ifall jag ska ha funktionerna här.
+    # Dessutom vet jag inte hur det ska testas. Testet ska inte
+    # intressera sig för var funktionerna ligger.
+    def Idn(self):
+        pass
+    def Options(self):
+        pass
+
 
 class RotaryDiscBySocket(socketInstrument):
 
@@ -110,15 +119,18 @@ class RotaryDiscBySocket(socketInstrument):
 
     patternz = {
         "en re": "vad den matchar",
-        "\*idn\?" : "is idn",
-        "\*opt\?" : "options"
+        "\*IDN\?" : rotaryHandlers.Idn,
+        "\*OPT\?" : rotaryHandlers.Options,
+        "CP" : "current position",
+        "LD [-]?\d+(\.\d+)? NP GO" : "go to position",
+        "(\ )*BU(\ )*" : "business"
     }
 
     def matchOf(self, commandString):
         rePatterns = self.patternz.keys()
         for p in rePatterns:
-            print("pattern %s" % p)
-            if re.search(p, commandString, re.I):
+            # print("pattern %s" % p)
+            if re.search(p, commandString):
                 return self.patternz[p]
         return "no match"
 

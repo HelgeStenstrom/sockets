@@ -63,8 +63,8 @@ class rotary_Tests(unittest.TestCase):
         self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
 
     def testThatSomeSimpleComandsGetParsed(self):
-        self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.rotaryHandlers.Idn)
-        self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.rotaryHandlers.Options)
+        self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn)
+        self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.RotaryDiscBySocket.Options)
         self.assertEqual(self.rd.matchOf("CP"), "current position")
         self.assertEqual(self.rd.matchOf("  BU  ; "), "business")
 

@@ -90,15 +90,6 @@ class vötschBySocket(socketInstrument):
         else:
             return "'" + command + "' is an unknown command."
 
-class rotaryHandlers:
-    # Jag är tveksam om ifall jag ska ha funktionerna här.
-    # Dessutom vet jag inte hur det ska testas. Testet ska inte
-    # intressera sig för var funktionerna ligger.
-    def Idn(self):
-        pass
-    def Options(self):
-        pass
-
 
 class RotaryDiscBySocket(socketInstrument):
 
@@ -117,10 +108,16 @@ class RotaryDiscBySocket(socketInstrument):
     # We want to emulate a GPIB-attached instrument. To which extent can that be made, using sockets?
     # It's the same VisaConnector.
 
+    def Idn(self):
+        pass
+
+    def Options(self):
+        pass
+
     patternz = {
         "en re": "vad den matchar",
-        "\*IDN\?" : rotaryHandlers.Idn,
-        "\*OPT\?" : rotaryHandlers.Options,
+        "\*IDN\?" : Idn,
+        "\*OPT\?" : Options,
         "CP" : "current position",
         "LD [-]?\d+(\.\d+)? NP GO" : "go to position",
         "(\ )*BU(\ )*" : "business"

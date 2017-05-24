@@ -19,6 +19,12 @@ from abc import abstractmethod, ABCMeta
 import re
 
 
+# Free functions
+
+def intersperse(delimiter, iterable):
+    return delimiter.join(iterable)
+
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     def q__init__(self):
         pass
@@ -109,18 +115,30 @@ class RotaryDiscBySocket(socketInstrument):
     # It's the same VisaConnector.
 
     def Idn(self):
-        pass
+        idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
+        return idnString
 
     def Options(self):
+        return ','.join(self.devices)
+
+    def goTo(self):
+        self.busy = True
+        self.targetPosition = None
         pass
+
+    def isBusy(self):
+        return None
+
+    def badCommand(self):
+        return "error message"
 
     patternz = {
         "en re": "vad den matchar",
         "\*IDN\?" : Idn,
         "\*OPT\?" : Options,
         "CP" : "current position",
-        "LD [-]?\d+(\.\d+)? NP GO" : "go to position",
-        "(\ )*BU(\ )*" : "business"
+        "LD [-]?\d+(\.\d+)? NP GO" : goTo,
+        "(\ )*BU(\ )*" : isBusy
     }
 
     def matchOf(self, commandString):
@@ -140,13 +158,15 @@ class RotaryDiscBySocket(socketInstrument):
         self.firmware = "1.02.62"
         self.position = 0
         self.speed = 2
-        self.degPerSecond = 4.6
+        self.degPerSecond = 4.9
+        self.busy = False
+        self.devices = ['AS1', 'DS1']
 
     def getIdnString(self):
         idnString = self.vendor + ',' + self.model + ',' +  self.serial + ',' + self.firmware
         return idnString
 
-    def responseFunction(self, command):
+    def QresponseFunction(self, command):
         command = command.strip()
         # print("got command '%s'" % command)
         if command.upper().startswith( "*IDN?"):
@@ -154,6 +174,14 @@ class RotaryDiscBySocket(socketInstrument):
             return response
         else:
             return "'" + command + "' is an unknown command.\n"
+
+    def responseFunction(self, command):
+        command = command.strip()
+        for rePattern in self.patternz:
+            if re.search(rePattern, command):
+                func =  self.patternz[rePattern]
+                return func(self)
+        return self.badCommand()
 
 
 def main():

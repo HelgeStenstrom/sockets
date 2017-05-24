@@ -58,26 +58,41 @@ class rotary_Tests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testIdnReturnsIdentity(self):
-        response = self.rd.responseFunction('*IDN?')
-        self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
-
     def testThatSomeSimpleComandsGetParsed(self):
         self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn)
         self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.RotaryDiscBySocket.Options)
         self.assertEqual(self.rd.matchOf("CP"), "current position")
-        self.assertEqual(self.rd.matchOf("  BU  ; "), "business")
+        self.assertEqual(self.rd.matchOf("  BU  ; "), socketInstrument.RotaryDiscBySocket.isBusy)
 
 
     def testThatParametrizedComandsGetParsed(self):
-        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), "go to position", "negative fraction")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), "go to position", "postitive fraction")
-        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), "go to position", "integer argument")
-        # self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), "go to position", "speed in deg per second")
+        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), socketInstrument.RotaryDiscBySocket.goTo, "negative fraction")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), socketInstrument.RotaryDiscBySocket.goTo, "postitive fraction")
+        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), socketInstrument.RotaryDiscBySocket.goTo, "integer argument")
+        #self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), "set speed", "speed in deg per second")
 
     def testThatFaultyCommandsYieldsErrorMessage(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
         # self.assertEqual(self.rd.matchOf(" BU ; xx"), "no match")
+
+class rotarty_response_Tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.RotaryDiscBySocket()
+
+    def tearDown(self):
+        pass
+
+    def testThatUnknownCommandReturnsErrorMessage(self):
+        response = self.rd.responseFunction('bad command')
+        self.assertEqual(response, "error message")
+
+    def testIdnReturnsIdentity(self):
+        response = self.rd.responseFunction('*IDN?')
+        self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
+
+    def testOptReturnsOptions(self):
+        response = self.rd.responseFunction('*OPT?')
+        self.assertEqual(response, "AS1,DS1")
 
 
 class vötsch_response_Tests(unittest.TestCase):

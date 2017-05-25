@@ -46,6 +46,9 @@ class socketInstrument(metaclass=ABCMeta):
     def responseFunction(self, command):
         pass
 
+    def numberFromString(self, s):
+        return -123.4
+
     def theSocket(self):
         # TODO: flytta till en annan klass, så att den här klassen bara handlar om in-och utdata från Vötsch
         HOST = ''  # Symbolic name meaning all available interfaces
@@ -127,7 +130,7 @@ class RotaryDiscBySocket(socketInstrument):
         pass
 
     def isBusy(self):
-        return None
+        return self.busy
 
     def badCommand(self):
         return "error message"
@@ -161,10 +164,17 @@ class RotaryDiscBySocket(socketInstrument):
         self.degPerSecond = 4.9
         self.busy = False
         self.devices = ['AS1', 'DS1']
+        self.command = ""
+        self.goal = None
 
     def getIdnString(self):
         idnString = self.vendor + ',' + self.model + ',' +  self.serial + ',' + self.firmware
         return idnString
+
+    def goToGoal(self):
+        assert self.goal != None
+        self.position = self.goal
+        self.busy = False
 
     def QresponseFunction(self, command):
         command = command.strip()

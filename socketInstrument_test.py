@@ -83,16 +83,51 @@ class rotarty_response_Tests(unittest.TestCase):
         pass
 
     def testThatUnknownCommandReturnsErrorMessage(self):
-        response = self.rd.responseFunction('bad command')
+        cmd = 'bad command'
+        response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "error message")
 
     def testIdnReturnsIdentity(self):
-        response = self.rd.responseFunction('*IDN?')
+        cmd = '*IDN?'
+        response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
 
     def testOptReturnsOptions(self):
-        response = self.rd.responseFunction('*OPT?')
+        cmd = '*OPT?'
+        response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "AS1,DS1")
+
+    def test_that_starting_movement_causes_busy(self):
+        cmd = "LD -123.4 NP GO"
+        self.assertEqual(self.rd.isBusy(), False)
+        self.rd.responseFunction(cmd)
+        self.assertEqual(self.rd.isBusy(), True)
+
+    def test_that_movement_goal_is_set(self):
+        cmd = "LD -123.4 NP GO"
+        self.rd.responseFunction(cmd)
+        self.assertEqual(self.rd.goal, -123.4)
+
+class function_Tests(unittest.TestCase):
+    def test_extraction_of_number_from_command(self):
+        command = "LD -123.3 NP GO"
+        number = socketInstrument.socketInstrument.numberFromString(None, command)
+        self.assertEqual(number, -123.3)
+
+class rotary_Functions_tests(unittest.TestCase):
+
+    def setUp(self):
+        self.rd = socketInstrument.RotaryDiscBySocket()
+
+    def tearDown(self):
+        pass
+
+    def test_that_movement_completion_works(self):
+        self.rd.goToGoal()
+        self.assertFalse(self.rd.isBusy())
+        self.assertAlmostEqual(self.rd.goal, self.rd.position, "not close enough", 0.1 )
+        self.fail("Test not implemented")
+
 
 
 class vötsch_response_Tests(unittest.TestCase):

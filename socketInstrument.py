@@ -3,7 +3,9 @@
 
 # Fungerar i python3.
 
-# From https://docs.python.org/3/library/socket.html#example
+# From
+# https://docs.python.org/3/library/socket.html#example
+# https://docs.python.org/3.3/library/socketserver.html#examples
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
 
@@ -26,7 +28,12 @@ def intersperse(delimiter, iterable):
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
-    def q__init__(self):
+    # TODO: varför finns denna klass? Den används ju inte!
+    # Den kommer nog från exempel i https://docs.python.org/3.3/library/socketserver.html#examples
+    def __init__(self):
+        print("This is not unit tested. It's the __init__ function of MyTCPHandler.")
+        # TODO: Ta bort utskrift så fort jag vet när denna klass används.
+        super.__init__(self)
         pass
 
     def handle(self):

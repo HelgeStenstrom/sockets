@@ -105,6 +105,11 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(self.rd.isBusy(), True)
 
     def test_BU_response_before_and_after_setting_new_position(self):
+        # Normally, these are set when the movement is started.
+        self.rd.startPosition = 0
+        self.rd.movementStartTime = time.time()
+        self.rd.targetPosition = 0
+
         before = self.rd.responseFunction("BU")
         self.assertEqual(before, "0")
         self.rd.responseFunction("LD 123.4 NP GO")
@@ -125,7 +130,11 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(response, "-123.4")
 
     def test_that_current_position_is_returned(self):
-        self.rd.position = -12.3
+        self.rd.movementStartTime = time.time()
+        self.rd.targetPosition = -12.3
+        self.rd.startPosition = -12.3
+        self.rd.currentPosition = -12.3
+        self.rd.speedInDegPerSecond = 3
         cmd = "CP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-12.3")
@@ -137,8 +146,8 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(self.rd.speedInDegPerSecond, 5.2)
 
     def test_that_movement_takes_limited_time_and_reaches_target(self):
-        self.rd.position = 0
-        timeItShouldTake = 0.1
+        self.rd.currentPosition = 0
+        timeItShouldTake = 0.02
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 NP GO")
@@ -146,21 +155,21 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(response, "1")
         time.sleep(timeItShouldTake*1.1)
         response = self.rd.responseFunction("BU")
-        self.assertNotEqual(self.rd.position, 0)
+        self.assertNotEqual(self.rd.currentPosition, 0)
         self.assertEqual(response, "0")
-        self.assertEqual(self.rd.position, 100)
+        self.assertEqual(self.rd.currentPosition, 100)
 
     def test_that_movement_takes_time(self):
-        self.rd.position = 0
-        timeItShouldTake = 0.1
+        self.rd.currentPosition = 0
+        timeItShouldTake = 0.02
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 NP GO")
         time.sleep(timeItShouldTake*0.5)
         response = self.rd.responseFunction("CP")
         self.assertNotEqual(response, "0")
-        self.assertGreater(self.rd.position, 0)
-        self.assertLess(self.rd.position, 100)
+        self.assertGreater(self.rd.currentPosition, 0)
+        self.assertLess(self.rd.currentPosition, 100)
 
 
 
@@ -180,13 +189,13 @@ class rotary_Functions_tests(unittest.TestCase):
         pass
 
     def test_that_movement_completion_works(self):
-        self.rd.position = 0
+        self.rd.currentPosition = 0
         self.rd.targetPosition = 123.4
 
         self.rd.finalizeMovement()
 
         self.assertFalse(self.rd.isBusy())
-        self.assertAlmostEqual(self.rd.targetPosition, self.rd.position, "not close enough", 0.1)
+        self.assertAlmostEqual(self.rd.targetPosition, self.rd.currentPosition, "not close enough", 0.1)
 
 
 

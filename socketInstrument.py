@@ -26,6 +26,7 @@ import socket
 import socketserver
 from abc import abstractmethod, ABCMeta
 import time
+import math
 
 
 # class MyTCPHandler(socketserver.BaseRequestHandler):
@@ -131,13 +132,14 @@ class RotaryDiscBySocket(SocketInstrument):
         self.model = "CO3000"
         self.serial = "python"
         self.firmware = "1.02.62"
-        self.position = 0
+        self.currentPosition = 0
+        self.startPosition = 0
         self.speedInDegPerSecond = 4.9
         self.busy = False
         self.devices = ['AS1', 'DS1']
         self.command = ""
-        self.targetPosition = None
-        self.movementStartTime = None
+        self.targetPosition = 1
+        self.movementStartTime = time.time()
 
 
     def Idn_response(self):
@@ -150,6 +152,7 @@ class RotaryDiscBySocket(SocketInstrument):
     def startMovement_response(self):
         command = self.command
         assert command != ""
+        self.startPosition = self.currentPosition
         self.busy = True
         self.targetPosition = self.numberFromInncoCommand(command)
         self.movementStartTime = time.time()
@@ -174,7 +177,7 @@ class RotaryDiscBySocket(SocketInstrument):
         "current position"
         self.updatePositionAndBusiness()
         #print("update called in CP response")
-        return str(self.position)
+        return "%.1f" % self.currentPosition
 
     def NSP_response(self):
         "new numeric speed"
@@ -184,17 +187,20 @@ class RotaryDiscBySocket(SocketInstrument):
     def badCommand(self):
         return "E - x"
 
+    def signedSpeed(self):
+        return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
+
     def updatePositionAndBusiness(self):
         elapsed = self.movementDurationSoFar()
         # print ("elapsed = ", elapsed)
         dist = elapsed * self.speedInDegPerSecond
-        print ("dist travelld = ", dist)
-        distToTravel = self.position - self.targetPosition
+        # print ("dist travelld = ", dist)
+        distToTravel = self.currentPosition - self.targetPosition
         if (dist > abs(distToTravel)) and self.isBusy():
-            self.position = self.targetPosition
+            self.currentPosition = self.targetPosition
             self.busy = False
         else:
-            self.position =
+            self.currentPosition = self.startPosition + self.signedSpeed() * elapsed
 
     patterns_to_select_command = {
         "en re": "vad den matchar",
@@ -220,7 +226,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
     def finalizeMovement(self):
         assert self.targetPosition != None
-        self.position = self.targetPosition
+        self.currentPosition = self.targetPosition
         self.busy = False
 
     def QresponseFunction(self, command):
@@ -251,7 +257,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
-    parser.add_argument('CcType', help='Type of Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
+    parser.add_argument('CcType', help='Type of instrument or Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
     args = parser.parse_args()
 
     if args.CcType in ['Vc', 'Vt']:

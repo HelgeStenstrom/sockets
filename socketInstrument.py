@@ -25,6 +25,7 @@ import re
 import socket
 import socketserver
 from abc import abstractmethod, ABCMeta
+import time
 
 
 # class MyTCPHandler(socketserver.BaseRequestHandler):
@@ -126,46 +127,83 @@ class RotaryDiscBySocket(SocketInstrument):
         super().__init__()
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         # Since we only use GPIB for the Innco RotaryDisc, this port will only be used for development tests
-        self.idnString = "innco GmbH,CO3000,python,1.02.62"
         self.vendor = "innco GmbH"
         self.model = "CO3000"
         self.serial = "python"
         self.firmware = "1.02.62"
         self.position = 0
-        self.speed = 2
-        self.degPerSecond = 4.9
+        self.speedInDegPerSecond = 4.9
         self.busy = False
         self.devices = ['AS1', 'DS1']
         self.command = ""
         self.targetPosition = None
+        self.movementStartTime = None
 
 
-    def Idn(self):
+    def Idn_response(self):
         idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
         return idnString
 
-    def Options(self):
+    def OPT_response(self):
         return ','.join(self.devices)
 
-    def startMovement(self):
+    def startMovement_response(self):
         command = self.command
         assert command != ""
         self.busy = True
         self.targetPosition = self.numberFromInncoCommand(command)
+        self.movementStartTime = time.time()
+        return str(self.targetPosition)
+
+    def movementDurationSoFar(self):
+        return time.time() - self.movementStartTime
 
     def isBusy(self):
+        "business"
         return self.busy
 
+    def BU_Response(self):
+        "business"
+        self.updatePositionAndBusiness()
+        if self.busy:
+            return "1"
+        else:
+            return "0"
+
+    def CP_response(self):
+        "current position"
+        self.updatePositionAndBusiness()
+        #print("update called in CP response")
+        return str(self.position)
+
+    def NSP_response(self):
+        "new numeric speed"
+        self.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
+        return str(self.speedInDegPerSecond)
+
     def badCommand(self):
-        return "error message"
+        return "E - x"
+
+    def updatePositionAndBusiness(self):
+        elapsed = self.movementDurationSoFar()
+        # print ("elapsed = ", elapsed)
+        dist = elapsed * self.speedInDegPerSecond
+        print ("dist travelld = ", dist)
+        distToTravel = self.position - self.targetPosition
+        if (dist > abs(distToTravel)) and self.isBusy():
+            self.position = self.targetPosition
+            self.busy = False
+        else:
+            self.position =
 
     patterns_to_select_command = {
         "en re": "vad den matchar",
-        "\*IDN\?" : Idn,
-        "\*OPT\?" : Options,
-        "CP" : "current position",
-        "LD [-]?\d+(\.\d+)? NP GO" : startMovement,
-        "(\ )*BU(\ )*" : isBusy
+        "\*IDN\?" : Idn_response,
+        "\*OPT\?" : OPT_response,
+        "CP" : CP_response,
+        "LD [-]?\d+(\.\d+)? NP GO" : startMovement_response,
+        "(\ )*BU(\ )*" : BU_Response,
+        "LD [-]?\d+(\.\d+)? NSP" : NSP_response
     }
 
     def matchOf(self, commandString):

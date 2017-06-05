@@ -4,6 +4,7 @@ import unittest.mock
 import sys
 # from io import StringIO, BytesIO
 # from argparse import ArgumentError
+import time
 
 
 class Tests_with_print(unittest.TestCase):
@@ -59,17 +60,17 @@ class rotary_Tests(unittest.TestCase):
         pass
 
     def testThatSomeSimpleComandsGetParsed(self):
-        self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn)
-        self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.RotaryDiscBySocket.Options)
-        self.assertEqual(self.rd.matchOf("CP"), "current position")
-        self.assertEqual(self.rd.matchOf("  BU  ; "), socketInstrument.RotaryDiscBySocket.isBusy)
+        self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
+        self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.RotaryDiscBySocket.OPT_response)
+        self.assertEqual(self.rd.matchOf("  CP  "), socketInstrument.RotaryDiscBySocket.CP_response)
+        self.assertEqual(self.rd.matchOf("  BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
 
 
     def testThatParametrizedComandsGetParsed(self):
-        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement, "negative fraction")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement, "postitive fraction")
-        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement, "integer argument")
-        #self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), "set speed", "speed in deg per second")
+        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement_response, "negative fraction")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement_response, "postitive fraction")
+        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), socketInstrument.RotaryDiscBySocket.NSP_response , "speed in deg per second")
 
     def testThatFaultyCommandsYieldsErrorMessage(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
@@ -85,7 +86,7 @@ class rotary_response_Tests(unittest.TestCase):
     def testThatUnknownCommandReturnsErrorMessage(self):
         cmd = 'bad command'
         response = self.rd.responseFunction(cmd)
-        self.assertEqual(response, "error message")
+        self.assertEqual(response[0:3], "E -")
 
     def testIdnReturnsIdentity(self):
         cmd = '*IDN?'
@@ -103,10 +104,66 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.isBusy(), True)
 
+    def test_BU_response_before_and_after_setting_new_position(self):
+        before = self.rd.responseFunction("BU")
+        self.assertEqual(before, "0")
+        self.rd.responseFunction("LD 123.4 NP GO")
+        after = self.rd.responseFunction("BU")
+        self.assertEqual(after, "1")
+        self.rd.finalizeMovement()
+        after2 = self.rd.responseFunction("BU")
+        self.assertEqual(after2, "0")
+
     def test_that_movement_goal_is_set(self):
         cmd = "LD -123.4 NP GO"
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.targetPosition, -123.4)
+
+    def test_that_movement_goal_is_returned(self):
+        cmd = "LD -123.4 NP GO"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "-123.4")
+
+    def test_that_current_position_is_returned(self):
+        self.rd.position = -12.3
+        cmd = "CP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "-12.3")
+
+    def test_that_the_speed_can_be_set(self):
+        cmd = "LD 5.2 NSP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "5.2")
+        self.assertEqual(self.rd.speedInDegPerSecond, 5.2)
+
+    def test_that_movement_takes_limited_time_and_reaches_target(self):
+        self.rd.position = 0
+        timeItShouldTake = 0.1
+        self.rd.speedInDegPerSecond = 100/timeItShouldTake
+
+        self.rd.responseFunction("LD 100 NP GO")
+        response = self.rd.responseFunction("BU")
+        self.assertEqual(response, "1")
+        time.sleep(timeItShouldTake*1.1)
+        response = self.rd.responseFunction("BU")
+        self.assertNotEqual(self.rd.position, 0)
+        self.assertEqual(response, "0")
+        self.assertEqual(self.rd.position, 100)
+
+    def test_that_movement_takes_time(self):
+        self.rd.position = 0
+        timeItShouldTake = 0.1
+        self.rd.speedInDegPerSecond = 100/timeItShouldTake
+
+        self.rd.responseFunction("LD 100 NP GO")
+        time.sleep(timeItShouldTake*0.5)
+        response = self.rd.responseFunction("CP")
+        self.assertNotEqual(response, "0")
+        self.assertGreater(self.rd.position, 0)
+        self.assertLess(self.rd.position, 100)
+
+
+
 
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):

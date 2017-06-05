@@ -66,16 +66,16 @@ class rotary_Tests(unittest.TestCase):
 
 
     def testThatParametrizedComandsGetParsed(self):
-        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), socketInstrument.RotaryDiscBySocket.goTo, "negative fraction")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), socketInstrument.RotaryDiscBySocket.goTo, "postitive fraction")
-        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), socketInstrument.RotaryDiscBySocket.goTo, "integer argument")
+        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement, "negative fraction")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement, "postitive fraction")
+        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement, "integer argument")
         #self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), "set speed", "speed in deg per second")
 
     def testThatFaultyCommandsYieldsErrorMessage(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
         # self.assertEqual(self.rd.matchOf(" BU ; xx"), "no match")
 
-class rotarty_response_Tests(unittest.TestCase):
+class rotary_response_Tests(unittest.TestCase):
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
 
@@ -106,12 +106,12 @@ class rotarty_response_Tests(unittest.TestCase):
     def test_that_movement_goal_is_set(self):
         cmd = "LD -123.4 NP GO"
         self.rd.responseFunction(cmd)
-        self.assertEqual(self.rd.goal, -123.4)
+        self.assertEqual(self.rd.targetPosition, -123.4)
 
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
         command = "LD -123.3 NP GO"
-        number = socketInstrument.socketInstrument.numberFromString(None, command)
+        number = socketInstrument.RotaryDiscBySocket.numberFromInncoCommand(None, command)
         self.assertEqual(number, -123.3)
 
 class rotary_Functions_tests(unittest.TestCase):
@@ -123,10 +123,13 @@ class rotary_Functions_tests(unittest.TestCase):
         pass
 
     def test_that_movement_completion_works(self):
-        self.rd.goToGoal()
+        self.rd.position = 0
+        self.rd.targetPosition = 123.4
+
+        self.rd.finalizeMovement()
+
         self.assertFalse(self.rd.isBusy())
-        self.assertAlmostEqual(self.rd.goal, self.rd.position, "not close enough", 0.1 )
-        self.fail("Test not implemented")
+        self.assertAlmostEqual(self.rd.targetPosition, self.rd.position, "not close enough", 0.1)
 
 
 

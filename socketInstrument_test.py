@@ -171,6 +171,9 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertGreater(self.rd.currentPosition, 0)
         self.assertLess(self.rd.currentPosition, 100)
 
+    def test_that_target_is_not_passed(self):
+        # Om man skickar CP upprepade gånger, rör sig rotorn även sedan målet passerats.
+        raise NotImplementedError
 
 
 

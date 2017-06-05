@@ -176,7 +176,6 @@ class rotary_response_Tests(unittest.TestCase):
         raise NotImplementedError
 
 
-
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
         command = "LD -123.3 NP GO"

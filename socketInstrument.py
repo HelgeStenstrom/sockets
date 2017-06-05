@@ -29,24 +29,6 @@ import time
 import math
 
 
-# class MyTCPHandler(socketserver.BaseRequestHandler):
-#     # TODO: varför finns denna klass? Den används ju inte!
-#     # Den kommer nog från exempel i https://docs.python.org/3.3/library/socketserver.html#examples
-#     def __init__(self):
-#         print("This is not unit tested. It's the __init__ function of MyTCPHandler.")
-#         # TODO: Ta bort utskrift så fort jag vet när denna klass används.
-#         super().__init__()
-#         pass
-#
-#     def handle(self):
-#         # self.request is the TCP socket connected to the client
-#         self.data = self.request.recv(1024).strip()
-#         print("{} wrote:".format(self.client_address[0]))
-#         print(self.data)
-#         # just send back the same data, but upper-cased
-#         self.request.sendall(self.data.upper())
-
-
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
         self.port = 2049 # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
@@ -69,7 +51,9 @@ class SocketInstrument(metaclass=ABCMeta):
                     receivedCommand = data.decode('utf-8')
                     print("Received: ", receivedCommand.strip(), "")
                     if not data: break
-                    response = bytes(self.responseFunction(data.decode('utf-8')) + '\r\n', 'utf-8')
+                    r = self.responseFunction(data.decode('utf-8'))
+                    response = bytes(r + '\r\n', 'utf-8')
+                    print("Sent:     %s" % r)
                     conn.sendall(response)
 
         print("Socket is shut down or closed. Please restart.")
@@ -100,7 +84,6 @@ class vötschBySocket(SocketInstrument):
         elif command.startswith("$01?"):
             return "ASCII description of the protocol"
         elif command.startswith("$01E"):
-            # print("Received command '", command[:-1], "'\n")
             return ""
         else:
             return "'" + command + "' is an unknown command."
@@ -176,7 +159,6 @@ class RotaryDiscBySocket(SocketInstrument):
     def CP_response(self):
         "current position"
         self.updatePositionAndBusiness()
-        #print("update called in CP response")
         return "%.1f" % self.currentPosition
 
     def NSP_response(self):
@@ -192,15 +174,14 @@ class RotaryDiscBySocket(SocketInstrument):
 
     def updatePositionAndBusiness(self):
         elapsed = self.movementDurationSoFar()
-        # print ("elapsed = ", elapsed)
         dist = elapsed * self.speedInDegPerSecond
-        # print ("dist travelld = ", dist)
         distToTravel = self.currentPosition - self.targetPosition
-        if (dist > abs(distToTravel)) and self.isBusy():
-            self.currentPosition = self.targetPosition
-            self.busy = False
-        else:
-            self.currentPosition = self.startPosition + self.signedSpeed() * elapsed
+        if self.isBusy():
+            if dist > abs(distToTravel):
+                self.currentPosition = self.targetPosition
+                self.busy = False
+            else:
+                self.currentPosition = self.startPosition + self.signedSpeed() * elapsed
 
     patterns_to_select_command = {
         "en re": "vad den matchar",
@@ -215,7 +196,6 @@ class RotaryDiscBySocket(SocketInstrument):
     def matchOf(self, commandString):
         rePatterns = self.patterns_to_select_command.keys()
         for p in rePatterns:
-            # print("pattern %s" % p)
             if re.search(p, commandString):
                 return self.patterns_to_select_command[p]
         return "no match"
@@ -228,15 +208,6 @@ class RotaryDiscBySocket(SocketInstrument):
         assert self.targetPosition != None
         self.currentPosition = self.targetPosition
         self.busy = False
-
-    def QresponseFunction(self, command):
-        command = command.strip()
-        # print("got command '%s'" % command)
-        if command.upper().startswith( "*IDN?"):
-            response = self.getIdnString()
-            return response
-        else:
-            return "'" + command + "' is an unknown command.\n"
 
     def responseFunction(self, command):
         command = command.strip()

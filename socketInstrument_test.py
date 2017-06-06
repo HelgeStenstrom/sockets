@@ -51,7 +51,6 @@ class main_Tests(unittest.TestCase):
         self.assertIn("a string to be tested", sys.stdout.getvalue())
 
 
-
 class rotary_Tests(unittest.TestCase):
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
@@ -65,16 +64,20 @@ class rotary_Tests(unittest.TestCase):
         self.assertEqual(self.rd.matchOf("  CP  "), socketInstrument.RotaryDiscBySocket.CP_response)
         self.assertEqual(self.rd.matchOf("  BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
 
-
     def testThatParametrizedComandsGetParsed(self):
-        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement_response, "negative fraction")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement_response, "postitive fraction")
-        self.assertEqual(self.rd.matchOf("LD 12 NP GO"), socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NSP"), socketInstrument.RotaryDiscBySocket.NSP_response , "speed in deg per second")
+        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"),
+                         socketInstrument.RotaryDiscBySocket.startMovement_response, "negative fraction")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"),
+                         socketInstrument.RotaryDiscBySocket.startMovement_response, "postitive fraction")
+        self.assertEqual(self.rd.matchOf("LD 12 NP GO"),
+                         socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
+        self.assertEqual(self.rd.matchOf("LD 12.3 NSP"),
+                         socketInstrument.RotaryDiscBySocket.NSP_response, "speed in deg per second")
 
     def testThatFaultyCommandsYieldsErrorMessage(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
         # self.assertEqual(self.rd.matchOf(" BU ; xx"), "no match")
+
 
 class rotary_response_Tests(unittest.TestCase):
     def setUp(self):
@@ -161,7 +164,7 @@ class rotary_response_Tests(unittest.TestCase):
 
     def test_that_movement_takes_time(self):
         self.rd.currentPosition = 0
-        timeItShouldTake = 0.02
+        timeItShouldTake = 0.04
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 NP GO")
@@ -179,8 +182,9 @@ class rotary_response_Tests(unittest.TestCase):
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
         command = "LD -123.3 NP GO"
-        number = socketInstrument.RotaryDiscBySocket.numberFromInncoCommand(None, command)
+        number = socketInstrument.RotaryDiscBySocket.numberFromInncoCommand(command)
         self.assertEqual(number, -123.3)
+
 
 class rotary_Functions_tests(unittest.TestCase):
 
@@ -198,7 +202,6 @@ class rotary_Functions_tests(unittest.TestCase):
 
         self.assertFalse(self.rd.isBusy())
         self.assertAlmostEqual(self.rd.targetPosition, self.rd.currentPosition, "not close enough", 0.1)
-
 
 
 class vötsch_response_Tests(unittest.TestCase):

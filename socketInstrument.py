@@ -23,7 +23,7 @@ import argparse
 import re
 # Echo server program
 import socket
-import socketserver
+# import socketserver
 from abc import abstractmethod, ABCMeta
 import time
 import math
@@ -31,7 +31,7 @@ import math
 
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
-        self.port = 2049 # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
 
     @abstractmethod
     def responseFunction(self, command):
@@ -50,7 +50,8 @@ class SocketInstrument(metaclass=ABCMeta):
                     data = conn.recv(1024)
                     receivedCommand = data.decode('utf-8')
                     print("Received: ", receivedCommand.strip(), "")
-                    if not data: break
+                    if not data:
+                        break
                     r = self.responseFunction(data.decode('utf-8'))
                     response = bytes(r + '\r\n', 'utf-8')
                     print("Sent:     %s" % r)
@@ -69,7 +70,8 @@ class vötschBySocket(SocketInstrument):
     def setTempActual(self, temp):
         self.temp = temp
 
-    def format(self, x):
+    @staticmethod
+    def format(x):
         return "%06.1f " % x
 
     def responseFunction(self, command):
@@ -87,7 +89,6 @@ class vötschBySocket(SocketInstrument):
             return ""
         else:
             return "'" + command + "' is an unknown command."
-
 
 
 class RotaryDiscBySocket(SocketInstrument):
@@ -123,7 +124,6 @@ class RotaryDiscBySocket(SocketInstrument):
         self.command = ""
         self.targetPosition = 1
         self.movementStartTime = time.time()
-
 
     def Idn_response(self):
         idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
@@ -166,7 +166,8 @@ class RotaryDiscBySocket(SocketInstrument):
         self.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
         return str(self.speedInDegPerSecond)
 
-    def badCommand(self):
+    @staticmethod
+    def badCommand():
         return "E - x"
 
     def signedSpeed(self):
@@ -185,12 +186,12 @@ class RotaryDiscBySocket(SocketInstrument):
 
     patterns_to_select_command = {
         "en re": "vad den matchar",
-        "\*IDN\?" : Idn_response,
-        "\*OPT\?" : OPT_response,
-        "CP" : CP_response,
-        "LD [-]?\d+(\.\d+)? NP GO" : startMovement_response,
-        "(\ )*BU(\ )*" : BU_Response,
-        "LD [-]?\d+(\.\d+)? NSP" : NSP_response
+        "\*IDN\?":   Idn_response,
+        "\*OPT\?":   OPT_response,
+        "CP": CP_response,
+        "LD [-]?\d+(\.\d+)? NP GO": startMovement_response,
+        "(\ )*BU(\ )*": BU_Response,
+        "LD [-]?\d+(\.\d+)? NSP": NSP_response
     }
 
     def matchOf(self, commandString):
@@ -201,11 +202,11 @@ class RotaryDiscBySocket(SocketInstrument):
         return "no match"
 
     def getIdnString(self):
-        idnString = self.vendor + ',' + self.model + ',' +  self.serial + ',' + self.firmware
+        idnString = self.vendor + ',' + self.model + ',' + self.serial + ',' + self.firmware
         return idnString
 
     def finalizeMovement(self):
-        assert self.targetPosition != None
+        assert self.targetPosition is not None
         self.currentPosition = self.targetPosition
         self.busy = False
 
@@ -214,11 +215,12 @@ class RotaryDiscBySocket(SocketInstrument):
         for rePattern in self.patterns_to_select_command:
             if re.search(rePattern, command):
                 self.command = command
-                func =  self.patterns_to_select_command[rePattern]
+                func = self.patterns_to_select_command[rePattern]
                 return func(self)
         return self.badCommand()
 
-    def numberFromInncoCommand(self, s):
+    @staticmethod
+    def numberFromInncoCommand(s):
         "Extract a number from a command string such as 'LD -123.4 NP GO'. "
 
         # All relevant Innco Commands seem to have the number at the second position.

@@ -14,11 +14,17 @@ class Tests_with_print(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def qtestThatPrintoutsCanBeTested(self):
+    def test_that_printouts_can_be_tested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
         print("some error", file=sys.stderr)
         self.assertIn("some error", sys.stderr.getvalue())
+
+    def test_printing(self):
+        # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
+        # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
+        print("a string to be tested")
+        self.assertIn("a string to be tested", sys.stdout.getvalue())
 
 
 class main_Tests(unittest.TestCase):
@@ -37,18 +43,12 @@ class main_Tests(unittest.TestCase):
         # help(sys.stderr)
         pass
 
-    def testMain1(self):
+    def test_that_invalid_arguments_raises_SystemExit(self):
 
         sys.argv = ["", "Invalid_argument"]
         self.assertRaises(SystemExit, socketInstrument.main)
         # Denna metod failar, om den inte får Vt, Vc eller RotaryDisc som argument.
         # Annars så returnerar den aldrig. Den måste ha en separat tråd.
-
-    def testPrinting(self):
-        # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
-        # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
-        print("a string to be tested")
-        self.assertIn("a string to be tested", sys.stdout.getvalue())
 
 
 class rotary_Tests(unittest.TestCase):
@@ -58,13 +58,13 @@ class rotary_Tests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testThatSomeSimpleComandsGetParsed(self):
+    def test_that_some_simple_commands_get_parsed(self):
         self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
         self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.RotaryDiscBySocket.OPT_response)
         self.assertEqual(self.rd.matchOf("  CP  "), socketInstrument.RotaryDiscBySocket.CP_response)
         self.assertEqual(self.rd.matchOf("  BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
 
-    def testThatParametrizedComandsGetParsed(self):
+    def test_that_parametrized_commands_get_parsed(self):
         self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"),
                          socketInstrument.RotaryDiscBySocket.startMovement_response, "negative fraction")
         self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"),
@@ -74,7 +74,7 @@ class rotary_Tests(unittest.TestCase):
         self.assertEqual(self.rd.matchOf("LD 12.3 NSP"),
                          socketInstrument.RotaryDiscBySocket.NSP_response, "speed in deg per second")
 
-    def testThatFaultyCommandsYieldsErrorMessage(self):
+    def test_that_faulty_commands_yields_error_message(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
         # self.assertEqual(self.rd.matchOf(" BU ; xx"), "no match")
 
@@ -86,17 +86,17 @@ class rotary_response_Tests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testThatUnknownCommandReturnsErrorMessage(self):
+    def test_that_unknown_command_returns_error_message(self):
         cmd = 'bad command'
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response[0:3], "E -")
 
-    def testIdnReturnsIdentity(self):
+    def test_that_idn_returns_identity(self):
         cmd = '*IDN?'
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "innco GmbH,CO3000,python,1.02.62")
 
-    def testOptReturnsOptions(self):
+    def test_that_opt_returns_options(self):
         cmd = '*OPT?'
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "AS1,DS1")
@@ -209,7 +209,7 @@ class vötsch_response_Tests(unittest.TestCase):
     def setUp(self):
         self.v = socketInstrument.vötschBySocket()
 
-    def testQuery(self):
+    def test_most_parts_of_a_query(self):
         command = "$01I"
         response = self.v.responseFunction(command)
         parts = response.split()
@@ -227,17 +227,21 @@ class vötsch_response_Tests(unittest.TestCase):
             self.assertTrue(d in "01")
 
         self.assertTrue(response.startswith("0027.1"))
+        # TODO: don't be dependent on defaults in the vötsch __init__ method.
 
-    def testSetTempActual(self):
-        self.v.setTempActual(17)
+    def test_that_the_actual_temperature_can_be_set_and_read(self):
+        self.v.setTempActual(-17.3)
         response = self.v.responseFunction("$01I")
         tempString = response.split()[0]
         temp = float(tempString)
-        self.assertEqual(17, temp)
+        self.assertEqual(-17.3, temp)
+        self.assertEqual("-017.3", tempString)
+        # TODO: Check with an actual Vötsch, that the temperature field looks like above.
 
-    def testHelp(self):
+    def test_the_response_to_the_help_command(self):
         command = "$01?"
         response = self.v.responseFunction(command)
+        # TODO: check what the actual response of a Vötsch is, and test for that instead.
         self.assertTrue(response.startswith("ASCII"))
 
 if __name__ == '__main__':

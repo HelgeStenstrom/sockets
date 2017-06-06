@@ -6,6 +6,8 @@ import sys
 # from argparse import ArgumentError
 import time
 
+# TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
+
 
 class Tests_with_print(unittest.TestCase):
     def setUp(self):
@@ -50,8 +52,14 @@ class main_Tests(unittest.TestCase):
         # Denna metod failar, om den inte får Vt, Vc eller RotaryDisc som argument.
         # Annars så returnerar den aldrig. Den måste ha en separat tråd.
 
+        # Test also with a valid offset
+        sys.argv = ["", "--offset", "3.3", "Invalid_argument"]
+        #sys.argv = ["", "RotaryDisc"]
+        self.assertRaises(SystemExit, socketInstrument.main)
+
 
 class rotary_Tests(unittest.TestCase):
+    # TODO: testa att offset och random fungerar som kommandots argument.
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
 
@@ -72,7 +80,7 @@ class rotary_Tests(unittest.TestCase):
         self.assertEqual(self.rd.matchOf("LD 12 NP GO"),
                          socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
         self.assertEqual(self.rd.matchOf("LD 12.3 NSP"),
-                         socketInstrument.RotaryDiscBySocket.NSP_response, "speed in deg per second")
+                         socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
 
     def test_that_faulty_commands_yields_error_message(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
@@ -148,6 +156,12 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(response, "5.2")
         self.assertEqual(self.rd.speedInDegPerSecond, 5.2)
 
+    def test_that_speed_is_returned(self):
+        self.rd.speedInDegPerSecond = 3.2
+        cmd = "NSP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "3.2")
+
     def test_that_movement_takes_limited_time_and_reaches_target(self):
         self.rd.currentPosition = 0
         timeItShouldTake = 0.02
@@ -164,7 +178,7 @@ class rotary_response_Tests(unittest.TestCase):
 
     def test_that_movement_takes_time(self):
         self.rd.currentPosition = 0
-        timeItShouldTake = 0.04
+        timeItShouldTake = 0.08
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 NP GO")
@@ -173,10 +187,6 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertNotEqual(response, "0")
         self.assertGreater(self.rd.currentPosition, 0)
         self.assertLess(self.rd.currentPosition, 100)
-
-    def test_that_target_is_not_passed(self):
-        # Om man skickar CP upprepade gånger, rör sig rotorn även sedan målet passerats.
-        raise NotImplementedError
 
 
 class function_Tests(unittest.TestCase):

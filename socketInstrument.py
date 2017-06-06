@@ -7,7 +7,6 @@
 # https://docs.python.org/3/library/socket.html#example
 # https://docs.python.org/3.3/library/socketserver.html#examples
 
-# TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
 
 """
 Mimic an instrument, and let it respond to commands.
@@ -21,7 +20,6 @@ Implemented instruments:
 
 import argparse
 import re
-# Echo server program
 import socket
 # import socketserver
 from abc import abstractmethod, ABCMeta
@@ -108,6 +106,11 @@ class RotaryDiscBySocket(SocketInstrument):
     # We want to emulate a GPIB-attached instrument. To which extent can that be made, using sockets?
     # It's the same VisaConnector.
 
+    # DONE: implementera NSP
+    # DONE: implementera LD # NSP
+    # TODO: implementera CW och CL
+    # TODO: implementera att förställa målvärde från kommandoraden
+
     def __init__(self):
         super().__init__()
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
@@ -124,6 +127,7 @@ class RotaryDiscBySocket(SocketInstrument):
         self.command = ""
         self.targetPosition = 1
         self.movementStartTime = time.time()
+        self.offset = 0
 
     def Idn_response(self):
         idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
@@ -137,9 +141,11 @@ class RotaryDiscBySocket(SocketInstrument):
         assert command != ""
         self.startPosition = self.currentPosition
         self.busy = True
-        self.targetPosition = self.numberFromInncoCommand(command)
+        normalTarget = self.numberFromInncoCommand(command)
+        self.targetPosition = normalTarget + self.offset
+        # TODO: implementera random.
         self.movementStartTime = time.time()
-        return str(self.targetPosition)
+        return str(normalTarget)
 
     def movementDurationSoFar(self):
         return time.time() - self.movementStartTime
@@ -162,6 +168,11 @@ class RotaryDiscBySocket(SocketInstrument):
         return "%.1f" % self.currentPosition
 
     def NSP_response(self):
+        "current speed"
+        # self.updatePositionAndBusiness()
+        return "%.1f" % self.speedInDegPerSecond
+
+    def LD_NSP_response(self):
         "new numeric speed"
         self.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
         return str(self.speedInDegPerSecond)
@@ -189,9 +200,10 @@ class RotaryDiscBySocket(SocketInstrument):
         "\*IDN\?":   Idn_response,
         "\*OPT\?":   OPT_response,
         "CP": CP_response,
+        "NSP": NSP_response,
         "LD [-]?\d+(\.\d+)? NP GO": startMovement_response,
         "(\ )*BU(\ )*": BU_Response,
-        "LD [-]?\d+(\.\d+)? NSP": NSP_response
+        "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
     }
 
     def matchOf(self, commandString):
@@ -200,10 +212,6 @@ class RotaryDiscBySocket(SocketInstrument):
             if re.search(p, commandString):
                 return self.patterns_to_select_command[p]
         return "no match"
-
-    def getIdnString(self):
-        idnString = self.vendor + ',' + self.model + ',' + self.serial + ',' + self.firmware
-        return idnString
 
     def finalizeMovement(self):
         assert self.targetPosition is not None
@@ -231,6 +239,8 @@ class RotaryDiscBySocket(SocketInstrument):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('CcType', help='Type of instrument or Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
+    parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
+    parser.add_argument('--random', help='random offset up to this value', type=float)
     args = parser.parse_args()
 
     if args.CcType in ['Vc', 'Vt']:
@@ -239,6 +249,11 @@ def main():
 
     elif args.CcType in ['RotaryDisc']:
         attachedInstrument = RotaryDiscBySocket()
+        if args.offset:
+            attachedInstrument.offset = args.offset
+        if args.random:
+            attachedInstrument.random = args.random
+
 
     else:
         raise NotImplementedError

@@ -67,27 +67,30 @@ class rotary_Tests(unittest.TestCase):
         pass
 
     def test_that_some_simple_commands_get_parsed(self):
-        self.assertEqual(self.rd.matchOf("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
-        self.assertEqual(self.rd.matchOf("*OPT? "), socketInstrument.RotaryDiscBySocket.OPT_response)
-        self.assertEqual(self.rd.matchOf("  CP  "), socketInstrument.RotaryDiscBySocket.CP_response)
-        self.assertEqual(self.rd.matchOf("  BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
+        self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
+        self.assertEqual(self.rd.commandFor("*OPT? "), socketInstrument.RotaryDiscBySocket.OPT_response)
+        self.assertEqual(self.rd.commandFor("CP  "), socketInstrument.RotaryDiscBySocket.CP_response)
+        self.assertEqual(self.rd.commandFor("BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
 
     def test_that_parametrized_commands_get_parsed(self):
-        self.assertEqual(self.rd.matchOf("LD -123.4 NP GO"),
+        self.assertEqual(self.rd.commandFor("LD -123.4 NP GO"),
                          socketInstrument.RotaryDiscBySocket.startMovement_response, "negative fraction")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NP GO"),
+        self.assertEqual(self.rd.commandFor("LD 12.3 NP GO"),
                          socketInstrument.RotaryDiscBySocket.startMovement_response, "postitive fraction")
-        self.assertEqual(self.rd.matchOf("LD 12 NP GO"),
+        self.assertEqual(self.rd.commandFor("LD 12 NP GO"),
                          socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
-        self.assertEqual(self.rd.matchOf("LD 12.3 NSP"),
+        self.assertEqual(self.rd.commandFor("LD 12.3 NSP"),
                          socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
-        self.assertEqual(self.rd.matchOf("NSP"),
+        self.assertEqual(self.rd.commandFor("NSP"),
                          socketInstrument.RotaryDiscBySocket.NSP_response, "Returned speed")
 
     def test_that_faulty_commands_yields_error_message(self):
-        self.assertEqual(self.rd.matchOf("unknown"), "no match")
-        # self.assertEqual(self.rd.matchOf(" BU ; xx"), "no match")
+        self.assertEqual(self.rd.commandFor("unknown"), None)
 
+    def test_distance_function(self):
+        limit = self.rd.farDistance
+        self.assertTrue(self.rd.isDistant(limit+1))
+        self.assertFalse(self.rd.isDistant(limit-1))
 
 class rotary_response_Tests(unittest.TestCase):
     def setUp(self):

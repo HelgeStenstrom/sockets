@@ -131,6 +131,9 @@ class RotaryDiscBySocket(SocketInstrument):
         self.targetPosition = 1
         self.movementStartTime = time.time()
         self.offset = 0
+        self.farDistance = 10
+        self.maxTries = 5
+        self.triesCount = 0
 
     def Idn_response(self):
         idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
@@ -150,13 +153,13 @@ class RotaryDiscBySocket(SocketInstrument):
         self.movementStartTime = time.time()
         return str(normalTarget)
 
-    # def movementDurationSoFar(self):
-    #     return time.time() - self.movementStartTime
-    #
-
     def isBusy(self):
         "business"
         return self.busy
+
+    def isDistant(self, target):
+        distance = abs(target - self.currentPosition)
+        return distance > self.farDistance
 
     def BU_Response(self):
         "business"
@@ -204,32 +207,31 @@ class RotaryDiscBySocket(SocketInstrument):
         "en re": "vad den matchar",
         "\*IDN\?":   Idn_response,
         "\*OPT\?":   OPT_response,
-        "^\ *CP\ *": CP_response,
-        "^\ *NSP": NSP_response,
+        "^CP\ *": CP_response,
+        "^NSP": NSP_response,
         "LD [-]?\d+(\.\d+)? NP GO": startMovement_response,
-        "(\ )*BU(\ )*": BU_Response,
+        "^BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
     }
-
-    def matchOf(self, commandString):
-        rePatterns = self.patterns_to_select_command.keys()
-        for p in rePatterns:
-            if re.match(p, commandString):
-                return self.patterns_to_select_command[p]
-        return "no match"
 
     def finalizeMovement(self):
         assert self.targetPosition is not None
         self.currentPosition = self.targetPosition
         self.busy = False
 
-    def responseFunction(self, command):
-        command = command.strip()
-        for rePattern in self.patterns_to_select_command:
-            if re.search(rePattern, command):
-                self.command = command
-                func = self.patterns_to_select_command[rePattern]
-                return func(self)
+    def commandFor(self, commandString):
+        rePatterns = self.patterns_to_select_command
+        for rePattern in rePatterns:
+            if re.match(rePattern, commandString):
+                return self.patterns_to_select_command[rePattern]
+        return None # "no match"
+
+    def responseFunction(self, commandString):
+        commandString = commandString.strip()
+        command = self.commandFor(commandString)
+        if command:
+            self.command = commandString
+            return command(self)
         return self.badCommand()
 
     @staticmethod

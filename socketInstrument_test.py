@@ -81,6 +81,8 @@ class rotary_Tests(unittest.TestCase):
                          socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
         self.assertEqual(self.rd.matchOf("LD 12.3 NSP"),
                          socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
+        self.assertEqual(self.rd.matchOf("NSP"),
+                         socketInstrument.RotaryDiscBySocket.NSP_response, "Returned speed")
 
     def test_that_faulty_commands_yields_error_message(self):
         self.assertEqual(self.rd.matchOf("unknown"), "no match")
@@ -182,11 +184,11 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 NP GO")
-        time.sleep(timeItShouldTake*0.5)
+        time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
         response = self.rd.responseFunction("CP")
         self.assertNotEqual(response, "0")
         self.assertGreater(self.rd.currentPosition, 0)
-        self.assertLess(self.rd.currentPosition, 100)
+        self.assertLess(self.rd.currentPosition, 95)
 
 
 class function_Tests(unittest.TestCase):

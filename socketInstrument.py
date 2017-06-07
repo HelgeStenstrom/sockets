@@ -36,6 +36,9 @@ class SocketInstrument(metaclass=ABCMeta):
         pass
 
     def theSocket(self):
+        # TODO: se till att avslutning fungerar snyggare, utan felmeddelanden till terminalen
+        # TODO: Se till att en session kan startas direkt efter att föregående har brutits.
+
         HOST = ''  # Symbolic name meaning all available interfaces
         PORT = self.port
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -196,11 +199,12 @@ class RotaryDiscBySocket(SocketInstrument):
                 self.currentPosition = self.startPosition + self.signedSpeed() * elapsed
 
     patterns_to_select_command = {
+        # Just enough to recognize which command is being sent. Extraction of values is done in other places.
         "en re": "vad den matchar",
         "\*IDN\?":   Idn_response,
         "\*OPT\?":   OPT_response,
-        "CP": CP_response,
-        "NSP": NSP_response,
+        "^\ *CP\ *": CP_response,
+        "^\ *NSP": NSP_response,
         "LD [-]?\d+(\.\d+)? NP GO": startMovement_response,
         "(\ )*BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
@@ -209,7 +213,7 @@ class RotaryDiscBySocket(SocketInstrument):
     def matchOf(self, commandString):
         rePatterns = self.patterns_to_select_command.keys()
         for p in rePatterns:
-            if re.search(p, commandString):
+            if re.match(p, commandString):
                 return self.patterns_to_select_command[p]
         return "no match"
 

@@ -74,11 +74,11 @@ class rotary_Tests(unittest.TestCase):
 
     def test_that_parametrized_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("LD -123.4 NP GO"),
-                         socketInstrument.RotaryDiscBySocket.startMovement_response, "negative fraction")
+                         socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "negative fraction")
         self.assertEqual(self.rd.commandFor("LD 12.3 NP GO"),
-                         socketInstrument.RotaryDiscBySocket.startMovement_response, "postitive fraction")
+                         socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "postitive fraction")
         self.assertEqual(self.rd.commandFor("LD 12 NP GO"),
-                         socketInstrument.RotaryDiscBySocket.startMovement_response, "integer argument")
+                         socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 12.3 NSP"),
                          socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
         self.assertEqual(self.rd.commandFor("NSP"),

@@ -36,12 +36,13 @@ class SocketInstrument(metaclass=ABCMeta):
         pass
 
     def theSocket(self):
-        # TODO: se till att avslutning fungerar snyggare, utan felmeddelanden till terminalen
-        # TODO: Se till att en session kan startas direkt efter att föregående har brutits.
+        # DONE: se till att avslutning fungerar snyggare, utan felmeddelanden till terminalen
+        # DONE: Se till att en session kan startas direkt efter att föregående har brutits.
 
         HOST = ''  # Symbolic name meaning all available interfaces
         PORT = self.port
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST, PORT))
             s.listen(1)
             conn, addr = s.accept()
@@ -49,7 +50,10 @@ class SocketInstrument(metaclass=ABCMeta):
                 print('Connected by', addr, "\n")
                 while True:
                     data = conn.recv(1024)
-                    receivedCommand = data.decode('utf-8')
+                    try:
+                        receivedCommand = data.decode('utf-8')
+                    except UnicodeDecodeError:
+                        break
                     print("Received: ", receivedCommand.strip(), "")
                     if not data:
                         break
@@ -112,7 +116,7 @@ class RotaryDiscBySocket(SocketInstrument):
     # DONE: implementera NSP
     # DONE: implementera LD # NSP
     # TODO: implementera CW och CL
-    # TODO: implementera att förställa målvärde från kommandoraden
+    # DONE: implementera att förställa målvärde från kommandoraden
 
     def __init__(self):
         super().__init__()
@@ -142,16 +146,28 @@ class RotaryDiscBySocket(SocketInstrument):
     def OPT_response(self):
         return ','.join(self.devices)
 
-    def startMovement_response(self):
+    def LD_NP_GO_response(self):
         command = self.command
         assert command != ""
         self.startPosition = self.currentPosition
         self.busy = True
         normalTarget = self.numberFromInncoCommand(command)
-        self.targetPosition = normalTarget + self.offset
+        adjust = self.adjustment(normalTarget)
+        self.targetPosition = normalTarget + adjust
         # TODO: implementera random.
         self.movementStartTime = time.time()
         return str(normalTarget)
+
+    def adjustment(self, normalTarget):
+        if self.isDistant(normalTarget):
+            self.triesCount = 0
+            adjust = self.offset
+        elif self.triesCount < self.maxTries:
+            self.triesCount += 1
+            adjust = self.offset
+        else:
+            adjust = 0
+        return adjust
 
     def isBusy(self):
         "business"
@@ -163,7 +179,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
     def BU_Response(self):
         "business"
-        self.updatePositionAndBusiness()
+        self.update()
         if self.isBusy():
             return "1"
         else:
@@ -171,7 +187,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
     def CP_response(self):
         "current position"
-        self.updatePositionAndBusiness()
+        self.update()
         return "%.1f" % self.currentPosition
 
     def NSP_response(self):
@@ -191,7 +207,7 @@ class RotaryDiscBySocket(SocketInstrument):
     def signedSpeed(self):
         return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
 
-    def updatePositionAndBusiness(self):
+    def update(self):
         elapsed = time.time() - self.movementStartTime
         dist = elapsed * self.speedInDegPerSecond
         distToTravel = self.currentPosition - self.targetPosition
@@ -209,7 +225,7 @@ class RotaryDiscBySocket(SocketInstrument):
         "\*OPT\?":   OPT_response,
         "^CP\ *": CP_response,
         "^NSP": NSP_response,
-        "LD [-]?\d+(\.\d+)? NP GO": startMovement_response,
+        "LD [-]?\d+(\.\d+)? NP GO": LD_NP_GO_response,
         "^BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
     }
@@ -247,7 +263,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('CcType', help='Type of instrument or Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
-    parser.add_argument('--random', help='random offset up to this value', type=float)
+    # parser.add_argument('--random', help='random offset up to this value', type=float)
     args = parser.parse_args()
 
     if args.CcType in ['Vc', 'Vt']:
@@ -258,8 +274,7 @@ def main():
         attachedInstrument = RotaryDiscBySocket()
         if args.offset:
             attachedInstrument.offset = args.offset
-        if args.random:
-            attachedInstrument.random = args.random
+        # if args.random: attachedInstrument.random = args.random
 
 
     else:

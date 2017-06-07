@@ -150,8 +150,9 @@ class RotaryDiscBySocket(SocketInstrument):
         self.movementStartTime = time.time()
         return str(normalTarget)
 
-    def movementDurationSoFar(self):
-        return time.time() - self.movementStartTime
+    # def movementDurationSoFar(self):
+    #     return time.time() - self.movementStartTime
+    #
 
     def isBusy(self):
         "business"
@@ -160,7 +161,7 @@ class RotaryDiscBySocket(SocketInstrument):
     def BU_Response(self):
         "business"
         self.updatePositionAndBusiness()
-        if self.busy:
+        if self.isBusy():
             return "1"
         else:
             return "0"
@@ -178,7 +179,7 @@ class RotaryDiscBySocket(SocketInstrument):
     def LD_NSP_response(self):
         "new numeric speed"
         self.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
-        return str(self.speedInDegPerSecond)
+        return "%.1f" % self.speedInDegPerSecond
 
     @staticmethod
     def badCommand():
@@ -188,7 +189,7 @@ class RotaryDiscBySocket(SocketInstrument):
         return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
 
     def updatePositionAndBusiness(self):
-        elapsed = self.movementDurationSoFar()
+        elapsed = time.time() - self.movementStartTime
         dist = elapsed * self.speedInDegPerSecond
         distToTravel = self.currentPosition - self.targetPosition
         if self.isBusy():

@@ -154,7 +154,6 @@ class RotaryDiscBySocket(SocketInstrument):
         normalTarget = self.numberFromInncoCommand(command)
         adjust = self.adjustment(normalTarget)
         self.targetPosition = normalTarget + adjust
-        # TODO: implementera random.
         self.movementStartTime = time.time()
         return str(normalTarget)
 
@@ -240,7 +239,7 @@ class RotaryDiscBySocket(SocketInstrument):
         for rePattern in rePatterns:
             if re.match(rePattern, commandString):
                 return self.patterns_to_select_command[rePattern]
-        return None # "no match"
+        return None  # "no match"
 
     def responseFunction(self, commandString):
         commandString = commandString.strip()
@@ -263,7 +262,6 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('CcType', help='Type of instrument or Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
-    # parser.add_argument('--random', help='random offset up to this value', type=float)
     args = parser.parse_args()
 
     if args.CcType in ['Vc', 'Vt']:
@@ -274,9 +272,6 @@ def main():
         attachedInstrument = RotaryDiscBySocket()
         if args.offset:
             attachedInstrument.offset = args.offset
-        # if args.random: attachedInstrument.random = args.random
-
-
     else:
         raise NotImplementedError
 

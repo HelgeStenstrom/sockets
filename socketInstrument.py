@@ -209,7 +209,7 @@ class RotaryDiscBySocket(SocketInstrument):
     def update(self):
         elapsed = time.time() - self.movementStartTime
         dist = elapsed * self.speedInDegPerSecond
-        distToTravel = self.currentPosition - self.targetPosition
+        distToTravel = self.startPosition - self.targetPosition
         if self.isBusy():
             if dist > abs(distToTravel):
                 self.currentPosition = self.targetPosition

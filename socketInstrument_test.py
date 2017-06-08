@@ -65,6 +65,19 @@ class rotary_Tests(unittest.TestCase):
     def tearDown(self):
         pass
 
+
+    def test_that_devices_can_be_created(self):
+        self.rd.attachedDevices = []
+        self.rd.create_devices()
+        devs = self.rd.attachedDevices
+        names = [dev.name for dev in devs]
+        self.assertListEqual(names, ['DS1', 'DS2'])
+
+    def test_that_devices_are_created_on_init(self):
+        devs = self.rd.attachedDevices
+        names = [dev.name for dev in devs]
+        self.assertListEqual(names, ['DS1', 'DS2'])
+
     def test_that_some_simple_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
         self.assertEqual(self.rd.commandFor("*OPT? "), socketInstrument.RotaryDiscBySocket.OPT_response)
@@ -112,7 +125,7 @@ class rotary_response_Tests(unittest.TestCase):
     def test_that_opt_returns_options(self):
         cmd = '*OPT?'
         response = self.rd.responseFunction(cmd)
-        self.assertEqual(response, "AS1,DS1")
+        self.assertEqual(response, "AS1,DS1,DS2")
 
     def test_that_starting_movement_causes_busy(self):
         cmd = "LD -123.4 DG NP GO"
@@ -217,6 +230,21 @@ class rotary_Functions_tests(unittest.TestCase):
 
         self.assertFalse(self.rd.isBusy())
         self.assertAlmostEqual(self.rd.targetPosition, self.rd.currentPosition, "not close enough", 0.1)
+
+
+class OneRotaryDisc_tests(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_create_one_device(self):
+        dev = socketInstrument.OneRotaryDisc('someName')
+        self.assertEqual(dev.name, 'someName')
+
+    def QQtest_that_it_has_limits(self):
+        raise NotImplementedError
 
 
 class vötsch_response_Tests(unittest.TestCase):

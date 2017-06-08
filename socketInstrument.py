@@ -118,29 +118,6 @@ class RotaryDiscBySocket(SocketInstrument):
     # TODO: implementera CW och CL
     # DONE: implementera att förställa målvärde från kommandoraden
 
-    def __init__(self):
-        super().__init__()
-        self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
-        # Since we only use GPIB for the Innco RotaryDisc, this port will only be used for development tests
-        self.vendor = "innco GmbH"
-        self.model = "CO3000"
-        self.serial = "python"
-        self.firmware = "1.02.62"
-        self.currentPosition = 0
-        self.startPosition = 0
-        self.speedInDegPerSecond = 4.9
-        self.busy = False
-        self.devices = ['AS1', 'DS1']
-        self.command = ""
-        self.targetPosition = 1
-        self.movementStartTime = time.time()
-        self.offset = 0
-        self.farDistance = 10
-        self.maxTries = 5
-        self.triesCount = 0
-        self.limit_clockwise = 400
-        self.limit_anticlockwise = -120
-
     def Idn_response(self):
         idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
         return idnString
@@ -269,6 +246,9 @@ class RotaryDiscBySocket(SocketInstrument):
             return command(self)
         return self.badCommand()
 
+    def create_devices(self):
+        self.attachedDevices = [OneRotaryDisc(name) for name in self.devices if name.startswith('DS')]
+
     @staticmethod
     def numberFromInncoCommand(s):
         "Extract a number from a command string such as 'LD -123.4 NP GO'. "
@@ -276,6 +256,68 @@ class RotaryDiscBySocket(SocketInstrument):
         # All relevant Innco Commands seem to have the number at the second position.
         words = s.split()
         return float(words[1])
+    def __init__(self):
+        super().__init__()
+        self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        # Since we only use GPIB for the Innco RotaryDisc, this port will only be used for development tests
+        self.vendor = "innco GmbH"
+        self.model = "CO3000"
+        self.serial = "python"
+        self.firmware = "1.02.62"
+        self.currentPosition = 0
+        self.startPosition = 0
+        self.speedInDegPerSecond = 4.9
+        self.busy = False
+        self.devices = ['AS1', 'DS1', 'DS2']
+        self.command = ""
+        self.targetPosition = 1
+        self.movementStartTime = time.time()
+        self.offset = 0
+        self.farDistance = 10
+        self.maxTries = 5
+        self.triesCount = 0
+        self.limit_clockwise = 400
+        self.limit_anticlockwise = -120
+        self.attachedDevices = []
+        self.create_devices()
+
+
+class OneRotaryDisc:
+    def __init__(self, name):
+        self.name = name
+        self.currentPosition = 0
+        self.startPosition = 0
+        self.speedInDegPerSecond = 4.9
+        self.busy = False
+        self.targetPosition = 1
+        self.movementStartTime = time.time()
+        self.triesCount = 0
+        self.limit_clockwise = 400
+        self.limit_anticlockwise = -120
+
+    def get_currentPosition(self):
+        "current position"
+        self.update()
+        return self.currentPosition
+
+    def start_movement(self):
+        "start moving a device"
+
+    def update(self):
+        slowDown = 0.8
+        elapsed = time.time() - self.movementStartTime
+        dist = slowDown * elapsed * self.speedInDegPerSecond
+        distToTravel = self.startPosition - self.targetPosition
+        if self.isBusy():
+            if dist > abs(distToTravel):
+                self.currentPosition = self.targetPosition
+                self.busy = False
+            else:
+                self.currentPosition = self.startPosition + slowDown * self.signedSpeed() * elapsed
+
+    def isBusy(self):
+        "business"
+        return self.busy
 
 
 def main():

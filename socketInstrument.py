@@ -269,6 +269,7 @@ class RotaryDiscBySocket(SocketInstrument):
         self.speedInDegPerSecond = 4.9
         self.busy = False
         self.devices = ['AS1', 'DS1', 'DS2']
+        self.attachedDevices = [OneRotaryDisc('DS1'), OneRotaryDisc('DS2')]
         self.command = ""
         self.targetPosition = 1
         self.movementStartTime = time.time()
@@ -278,8 +279,8 @@ class RotaryDiscBySocket(SocketInstrument):
         self.triesCount = 0
         self.limit_clockwise = 400
         self.limit_anticlockwise = -120
-        self.attachedDevices = []
-        self.create_devices()
+        #self.attachedDevices = []
+        #self.create_devices()
 
 
 class OneRotaryDisc:
@@ -301,8 +302,11 @@ class OneRotaryDisc:
         self.update()
         return self.currentPosition
 
-    def start_movement(self):
+    def start_movement(self, target):
         "start moving a device"
+        self.startPosition = self.currentPosition
+        self.targetPosition = target
+        self.busy = True
 
     def update(self):
         slowDown = 0.8
@@ -315,13 +319,13 @@ class OneRotaryDisc:
                 self.busy = False
             else:
                 self.currentPosition = self.startPosition + slowDown * self.signedSpeed() * elapsed
-        return (self.busy, self.currentPosition)
-        # TODO: Är det skumt att returnera instansvariabler?
 
     def signedSpeed(self):
         return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
 
-
+    def finalizeMovement(self):
+        self.currentPosition = self.targetPosition
+        self.busy = False
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])

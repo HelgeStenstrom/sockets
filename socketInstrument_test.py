@@ -67,13 +67,14 @@ class rotary_Tests(unittest.TestCase):
 
 
     def test_that_devices_can_be_created(self):
+        # TODO: Gör den här onödig, genom att skapa devices i init.
         self.rd.attachedDevices = []
         self.rd.create_devices()
         devs = self.rd.attachedDevices
         names = [dev.name for dev in devs]
         self.assertListEqual(names, ['DS1', 'DS2'])
 
-    def test_that_devices_are_created_on_init(self):
+    def test_that_devices_have_names(self):
         devs = self.rd.attachedDevices
         names = [dev.name for dev in devs]
         self.assertListEqual(names, ['DS1', 'DS2'])
@@ -246,21 +247,45 @@ class OneRotaryDisc_tests(unittest.TestCase):
     def test_that_it_has_limits(self):
         self.assertGreater(self.dev.limit_clockwise, self.dev.limit_anticlockwise)
 
-    def Qtest_update(self):
-        raise NotImplementedError
-
-    def Qtest_BU_response_before_and_after_setting_new_position(self):
+    def test_busy_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
         self.dev.startPosition = 0
         self.dev.movementStartTime = time.time()
         self.dev.targetPosition = 0
 
         self.assertEqual(self.dev.busy, False)
-        self.dev.start_movement()
+        target = 30
+        self.dev.start_movement(target)
         self.assertEqual(self.dev.busy, True)
-        self.rd.finalizeMovement()
-        after2 = self.rd.responseFunction("BU")
-        self.assertEqual(after2, "0")
+        self.dev.finalizeMovement()
+        self.assertEqual(self.dev.busy, False)
+
+    @unittest.skip("reason for skipping")
+    def test_update(self):
+        self.dev
+        raise NotImplementedError
+
+    def test_that_movement_completion_works(self):
+        self.dev.currentPosition = 0
+        self.dev.targetPosition = 123.4
+
+        self.dev.finalizeMovement()
+
+        self.assertFalse(self.dev.busy)
+        self.assertAlmostEqual(self.dev.targetPosition, self.dev.currentPosition, "not close enough", 0.1)
+
+    def test_that_movement_takes_time(self):
+        self.dev.currentPosition = 0
+        timeItShouldTake = 0.8
+        self.dev.speedInDegPerSecond = 100/timeItShouldTake
+
+        self.dev.start_movement(100)
+        time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
+        self.dev.update()
+        self.assertTrue(self.dev.busy)
+        self.assertGreater(self.dev.currentPosition, 0)
+        self.assertLess(self.dev.currentPosition, 95)
+
 
 
 class vötsch_response_Tests(unittest.TestCase):

@@ -283,7 +283,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
 
 class OneRotaryDisc:
-    def __init__(self, name):
+    def __init__(self, name, slowDown = 0):
         self.name = name
         self.currentPosition = 0
         self.startPosition = 0
@@ -294,6 +294,7 @@ class OneRotaryDisc:
         self.triesCount = 0
         self.limit_clockwise = 400
         self.limit_anticlockwise = -120
+        self.slowDown = slowDown
 
     def get_currentPosition(self):
         "current position"
@@ -308,16 +309,18 @@ class OneRotaryDisc:
         elapsed = time.time() - self.movementStartTime
         dist = slowDown * elapsed * self.speedInDegPerSecond
         distToTravel = self.startPosition - self.targetPosition
-        if self.isBusy():
+        if self.busy:
             if dist > abs(distToTravel):
                 self.currentPosition = self.targetPosition
                 self.busy = False
             else:
                 self.currentPosition = self.startPosition + slowDown * self.signedSpeed() * elapsed
+        return (self.busy, self.currentPosition)
+        # TODO: Är det skumt att returnera instansvariabler?
 
-    def isBusy(self):
-        "business"
-        return self.busy
+    def signedSpeed(self):
+        return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
+
 
 
 def main():

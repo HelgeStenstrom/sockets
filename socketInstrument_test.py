@@ -234,17 +234,33 @@ class rotary_Functions_tests(unittest.TestCase):
 
 class OneRotaryDisc_tests(unittest.TestCase):
     def setUp(self):
-        pass
+        self.dev = socketInstrument.OneRotaryDisc('someName')
 
     def tearDown(self):
         pass
 
     def test_create_one_device(self):
-        dev = socketInstrument.OneRotaryDisc('someName')
-        self.assertEqual(dev.name, 'someName')
+        #dev = socketInstrument.OneRotaryDisc('someName')
+        self.assertEqual(self.dev.name, 'someName')
 
-    def QQtest_that_it_has_limits(self):
+    def test_that_it_has_limits(self):
+        self.assertGreater(self.dev.limit_clockwise, self.dev.limit_anticlockwise)
+
+    def Qtest_update(self):
         raise NotImplementedError
+
+    def Qtest_BU_response_before_and_after_setting_new_position(self):
+        # Normally, these are set when the movement is started.
+        self.dev.startPosition = 0
+        self.dev.movementStartTime = time.time()
+        self.dev.targetPosition = 0
+
+        self.assertEqual(self.dev.busy, False)
+        self.dev.start_movement()
+        self.assertEqual(self.dev.busy, True)
+        self.rd.finalizeMovement()
+        after2 = self.rd.responseFunction("BU")
+        self.assertEqual(after2, "0")
 
 
 class vötsch_response_Tests(unittest.TestCase):

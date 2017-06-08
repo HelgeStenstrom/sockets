@@ -6,10 +6,10 @@ Created on Tue Feb 21 10:41:04 2017
 """
 
 import socket
-import io
-import numpy as np
+# import io
+# import numpy as np
 import time
-import sys
+# import sys
 
 """
 Socket communication to the instrument

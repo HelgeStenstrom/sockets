@@ -73,11 +73,11 @@ class rotary_Tests(unittest.TestCase):
         self.assertEqual(self.rd.commandFor("BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
 
     def test_that_parametrized_commands_get_parsed(self):
-        self.assertEqual(self.rd.commandFor("LD -123.4 NP GO"),
+        self.assertEqual(self.rd.commandFor("LD -123.4 DG NP GO"),
                          socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "negative fraction")
-        self.assertEqual(self.rd.commandFor("LD 12.3 NP GO"),
+        self.assertEqual(self.rd.commandFor("LD 12.3 DG NP GO"),
                          socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "postitive fraction")
-        self.assertEqual(self.rd.commandFor("LD 12 NP GO"),
+        self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
                          socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 12.3 NSP"),
                          socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
@@ -115,7 +115,7 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(response, "AS1,DS1")
 
     def test_that_starting_movement_causes_busy(self):
-        cmd = "LD -123.4 NP GO"
+        cmd = "LD -123.4 DG NP GO"
         self.assertEqual(self.rd.isBusy(), False)
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.isBusy(), True)
@@ -128,7 +128,7 @@ class rotary_response_Tests(unittest.TestCase):
 
         before = self.rd.responseFunction("BU")
         self.assertEqual(before, "0")
-        self.rd.responseFunction("LD 123.4 NP GO")
+        self.rd.responseFunction("LD 123.4 DG NP GO")
         after = self.rd.responseFunction("BU")
         self.assertEqual(after, "1")
         self.rd.finalizeMovement()
@@ -136,12 +136,12 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(after2, "0")
 
     def test_that_movement_goal_is_set(self):
-        cmd = "LD -123.4 NP GO"
+        cmd = "LD -123.4 DG NP GO"
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.targetPosition, -123.4)
 
     def test_that_movement_goal_is_returned(self):
-        cmd = "LD -123.4 NP GO"
+        cmd = "LD -123.4 DG NP GO"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-123.4")
 
@@ -172,10 +172,10 @@ class rotary_response_Tests(unittest.TestCase):
         timeItShouldTake = 0.02
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
-        self.rd.responseFunction("LD 100 NP GO")
+        self.rd.responseFunction("LD 100 DG NP GO")
         response = self.rd.responseFunction("BU")
         self.assertEqual(response, "1")
-        time.sleep(timeItShouldTake*1.1)
+        time.sleep(timeItShouldTake*1.3) # Need to agree with slowDown in update function.
         response = self.rd.responseFunction("BU")
         self.assertNotEqual(self.rd.currentPosition, 0)
         self.assertEqual(response, "0")
@@ -186,7 +186,7 @@ class rotary_response_Tests(unittest.TestCase):
         timeItShouldTake = 0.08
         self.rd.speedInDegPerSecond = 100/timeItShouldTake
 
-        self.rd.responseFunction("LD 100 NP GO")
+        self.rd.responseFunction("LD 100 DG NP GO")
         time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
         response = self.rd.responseFunction("CP")
         self.assertNotEqual(response, "0")
@@ -196,7 +196,7 @@ class rotary_response_Tests(unittest.TestCase):
 
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
-        command = "LD -123.3 NP GO"
+        command = "LD -123.3 DG NP GO"
         number = socketInstrument.RotaryDiscBySocket.numberFromInncoCommand(command)
         self.assertEqual(number, -123.3)
 

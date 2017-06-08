@@ -138,6 +138,8 @@ class RotaryDiscBySocket(SocketInstrument):
         self.farDistance = 10
         self.maxTries = 5
         self.triesCount = 0
+        self.limit_clockwise = 400
+        self.limit_anticlockwise = -120
 
     def Idn_response(self):
         idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
@@ -189,6 +191,14 @@ class RotaryDiscBySocket(SocketInstrument):
         self.update()
         return "%.1f" % self.currentPosition
 
+    def WL_response(self):
+        "clockwise limit"
+        return "%.1f" % self.limit_clockwise
+
+    def CL_response(self):
+        "anticlockwise limit"
+        return "%.1f" % self.limit_anticlockwise
+
     def NSP_response(self):
         "current speed"
         # self.updatePositionAndBusiness()
@@ -199,6 +209,12 @@ class RotaryDiscBySocket(SocketInstrument):
         self.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
         return "%.1f" % self.speedInDegPerSecond
 
+    def LD_dev_DV_response(self):
+        "set active device"
+        # TODO: implement the concept of several devices. A new class hierarchy is needed for the devices.
+        # For now, this returns a plausible value; the index of the selected device in the attached-device list
+        return "1"
+
     @staticmethod
     def badCommand():
         return "E - x"
@@ -207,15 +223,16 @@ class RotaryDiscBySocket(SocketInstrument):
         return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
 
     def update(self):
+        slowDown = 0.8
         elapsed = time.time() - self.movementStartTime
-        dist = elapsed * self.speedInDegPerSecond
+        dist = slowDown * elapsed * self.speedInDegPerSecond
         distToTravel = self.startPosition - self.targetPosition
         if self.isBusy():
             if dist > abs(distToTravel):
                 self.currentPosition = self.targetPosition
                 self.busy = False
             else:
-                self.currentPosition = self.startPosition + self.signedSpeed() * elapsed
+                self.currentPosition = self.startPosition + slowDown * self.signedSpeed() * elapsed
 
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
@@ -223,8 +240,11 @@ class RotaryDiscBySocket(SocketInstrument):
         "\*IDN\?":   Idn_response,
         "\*OPT\?":   OPT_response,
         "^CP\ *": CP_response,
+        "^WL\ *": WL_response,
+        "^CL\ *": CL_response,
         "^NSP": NSP_response,
-        "LD [-]?\d+(\.\d+)? NP GO": LD_NP_GO_response,
+        "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
+        "LD DS1 DV": LD_dev_DV_response,  # TODO: regexp som tar olika värden istället för DS1
         "^BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
     }

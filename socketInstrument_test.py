@@ -54,7 +54,6 @@ class main_Tests(unittest.TestCase):
 
         # Test also with a valid offset
         sys.argv = ["", "--offset", "3.3", "Invalid_argument"]
-        #sys.argv = ["", "RotaryDisc"]
         self.assertRaises(SystemExit, socketInstrument.main)
 
 
@@ -91,6 +90,7 @@ class rotary_Tests(unittest.TestCase):
         limit = self.rd.farDistance
         self.assertTrue(self.rd.isDistant(limit+1))
         self.assertFalse(self.rd.isDistant(limit-1))
+
 
 class rotary_response_Tests(unittest.TestCase):
     def setUp(self):
@@ -175,7 +175,7 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.responseFunction("LD 100 DG NP GO")
         response = self.rd.responseFunction("BU")
         self.assertEqual(response, "1")
-        time.sleep(timeItShouldTake*1.3) # Need to agree with slowDown in update function.
+        time.sleep(timeItShouldTake*1.3)  # Need to agree with slowDown in update function.
         response = self.rd.responseFunction("BU")
         self.assertNotEqual(self.rd.currentPosition, 0)
         self.assertEqual(response, "0")

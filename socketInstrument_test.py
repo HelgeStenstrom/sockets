@@ -1,6 +1,6 @@
 import socketInstrument
-# import unittest
-import unittest.mock
+import unittest
+from unittest.mock import MagicMock
 import sys
 # from io import StringIO, BytesIO
 # from argparse import ArgumentError
@@ -64,7 +64,6 @@ class rotary_Tests(unittest.TestCase):
 
     def tearDown(self):
         pass
-
 
     def test_that_devices_can_be_created(self):
         # TODO: Gör den här onödig, genom att skapa devices i init.
@@ -150,6 +149,8 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(after2, "0")
 
     def test_that_movement_goal_is_set(self):
+        # TODO: kanske vi inte ska testa på detta sätt. Viktigare att startMovement anropas.
+        # Försök med Mock, MagicMock
         cmd = "LD -123.4 DG NP GO"
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.targetPosition, -123.4)
@@ -241,7 +242,6 @@ class OneRotaryDisc_tests(unittest.TestCase):
         pass
 
     def test_create_one_device(self):
-        #dev = socketInstrument.OneRotaryDisc('someName')
         self.assertEqual(self.dev.name, 'someName')
 
     def test_that_it_has_limits(self):
@@ -285,7 +285,6 @@ class OneRotaryDisc_tests(unittest.TestCase):
         self.assertTrue(self.dev.busy)
         self.assertGreater(self.dev.currentPosition, 0)
         self.assertLess(self.dev.currentPosition, 95)
-
 
 
 class vötsch_response_Tests(unittest.TestCase):

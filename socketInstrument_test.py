@@ -149,23 +149,22 @@ class rotary_response_Tests(unittest.TestCase):
         after2 = self.rd.responseFunction("BU")
         self.assertEqual(after2, "0")
 
-    def Qtest_BU_response_before_and_after_setting_new_position(self):
+    def test_BU_response_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
         # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
-        self.rd.startPosition = 0
-        self.rd.movementStartTime = time.time()
-        self.rd.targetPosition = 0
+        cd = self.rd.currentDevice
+        cd.startPosition = 0
+        cd.movementStartTime = time.time()
+        cd.targetPosition = 0
 
         before = self.rd.responseFunction("BU")
         self.assertEqual(before, "0")
         self.rd.responseFunction("LD 123.4 DG NP GO")
         after = self.rd.responseFunction("BU")
         self.assertEqual(after, "1")
-        self.rd.finalizeMovement()
+        cd.finalizeMovement()
         after2 = self.rd.responseFunction("BU")
         self.assertEqual(after2, "0")
-
-
 
     # @unittest.skip("Behövs senare, där device-klassen används.")
     def test_that_one_busy_dev_makes_whole_unit_busy(self):
@@ -190,12 +189,13 @@ class rotary_response_Tests(unittest.TestCase):
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-123.4")
 
-    def Qtest_that_current_position_is_returned(self):
-        self.rd.movementStartTime = time.time()
-        self.rd.targetPosition = -12.3
-        self.rd.startPosition = -12.3
-        self.rd.currentPosition = -12.3
-        self.rd.speedInDegPerSecond = 3
+    def test_that_current_position_is_returned(self):
+        cd = self.rd.currentDevice
+        cd.movementStartTime = time.time()
+        cd.targetPosition = -12.3
+        cd.startPosition = -12.3
+        cd.currentPosition = -12.3
+        cd.speedInDegPerSecond = 3
         cmd = "CP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-12.3")

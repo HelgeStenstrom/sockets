@@ -129,7 +129,7 @@ class RotaryDiscBySocket(SocketInstrument):
         command = self.command
         assert command != ""
         cd = self.currentDevice
-        self.startPosition = cd.currentPosition
+        # self.startPosition = cd.currentPosition
         cd.busy = True
         normalTarget = self.numberFromInncoCommand(command)
         adjust = self.adjustment(normalTarget)
@@ -270,7 +270,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
 
 class OneRotaryDisc:
-    def __init__(self, name, slowDown = 0):
+    def __init__(self, name, slowDown=0):
         self.name = name
         self.currentPosition = 0
         self.startPosition = 0
@@ -312,6 +312,7 @@ class OneRotaryDisc:
     def finalizeMovement(self):
         self.currentPosition = self.targetPosition
         self.busy = False
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])

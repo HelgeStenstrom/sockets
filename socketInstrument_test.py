@@ -16,13 +16,15 @@ class Tests_with_print(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_that_printouts_can_be_tested(self):
+    @unittest.skip("Vill inte ha utskrifter till konsolen.")
+    def Qtest_that_printouts_can_be_tested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
         print("some error", file=sys.stderr)
         self.assertIn("some error", sys.stderr.getvalue())
 
-    def test_printing(self):
+    @unittest.skip("Vill inte ha utskrifter till konsolen.")
+    def Qtest_printing(self):
         # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
         # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
         print("a string to be tested")
@@ -65,18 +67,10 @@ class rotary_Tests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_that_devices_can_be_created(self):
-        # TODO: Gör den här onödig, genom att skapa devices i init.
-        self.rd.attachedDevices = []
-        self.rd.create_devices()
-        devs = self.rd.attachedDevices
-        names = [dev.name for dev in devs]
-        self.assertListEqual(names, ['DS1', 'DS2'])
-
     def test_that_devices_have_names(self):
         devs = self.rd.attachedDevices
         names = [dev.name for dev in devs]
-        self.assertListEqual(names, ['DS1', 'DS2'])
+        self.assertListEqual(names, ['DS1', 'DS2', 'DS3'])
 
     def test_that_some_simple_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
@@ -95,6 +89,8 @@ class rotary_Tests(unittest.TestCase):
                          socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
         self.assertEqual(self.rd.commandFor("NSP"),
                          socketInstrument.RotaryDiscBySocket.NSP_response, "Returned speed")
+        self.assertEqual(self.rd.commandFor("LD DS2 DV"),
+                         socketInstrument.RotaryDiscBySocket.LD_dev_DV_response, "Select current device")
 
     def test_that_faulty_commands_yields_error_message(self):
         self.assertEqual(self.rd.commandFor("unknown"), None)
@@ -108,6 +104,7 @@ class rotary_Tests(unittest.TestCase):
 class rotary_response_Tests(unittest.TestCase):
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
+        # TODO: välj ett device som "current"
 
     def tearDown(self):
         pass
@@ -126,6 +123,7 @@ class rotary_response_Tests(unittest.TestCase):
         cmd = '*OPT?'
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "AS1,DS1,DS2")
+        # TODO: Justera efter ny lista med attachedDevices
 
     def test_that_starting_movement_causes_busy(self):
         cmd = "LD -123.4 DG NP GO"
@@ -135,6 +133,7 @@ class rotary_response_Tests(unittest.TestCase):
 
     def test_BU_response_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
+        # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
         self.rd.startPosition = 0
         self.rd.movementStartTime = time.time()
         self.rd.targetPosition = 0
@@ -147,6 +146,16 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.finalizeMovement()
         after2 = self.rd.responseFunction("BU")
         self.assertEqual(after2, "0")
+
+    @unittest.skip("Behövs senare, där device-klassen används.")
+    def test_that_one_busy_dev_makes_whole_unit_busy(self):
+        devices = self.rd.attachedDevices
+        self.assertEqual(len(devices), 2)
+        for dev in devices:
+            dev.busy = False
+        self.assertFalse(self.rd.isBusy())
+        devices[0].busy = True
+        self.assertTrue(self.rd.isBusy())
 
     def test_that_movement_goal_is_set(self):
         # TODO: kanske vi inte ska testa på detta sätt. Viktigare att startMovement anropas.
@@ -208,6 +217,36 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertGreater(self.rd.currentPosition, 0)
         self.assertLess(self.rd.currentPosition, 95)
 
+class Rotary_top_level_function_tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.RotaryDiscBySocket()
+
+    def tearDown(self):
+        pass
+
+    def test_that_a_device_can_be_found_by_name(self):
+        devs = self.rd.attachedDevices
+        dev1 = self.rd.deviceByName("DS1")
+        dev2 = self.rd.deviceByName("DS2")
+        self.assertEqual(dev1, devs[0])
+        self.assertEqual(dev2, devs[1])
+
+class Rotary_command_tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.RotaryDiscBySocket()
+
+    def tearDown(self):
+        pass
+
+    def test_that_LD_DV_command_is_parsed(self):
+        pass
+
+    def test_that_a_device_is_selected(self):
+        cmd = "LD DS2 DV"
+        response = self.rd.responseFunction(cmd)
+        # TODO: Kolla att DS1 blir current device
+        self.assertEqual(self.rd.currentDevice, self.rd.deviceByName('DS2'))
+
 
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
@@ -259,11 +298,6 @@ class OneRotaryDisc_tests(unittest.TestCase):
         self.assertEqual(self.dev.busy, True)
         self.dev.finalizeMovement()
         self.assertEqual(self.dev.busy, False)
-
-    @unittest.skip("reason for skipping")
-    def test_update(self):
-        self.dev
-        raise NotImplementedError
 
     def test_that_movement_completion_works(self):
         self.dev.currentPosition = 0

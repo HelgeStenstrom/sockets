@@ -149,6 +149,7 @@ class RotaryDiscBySocket(SocketInstrument):
 
     def isBusy(self):
         "business"
+        # TODO: Ändra till att något device är Busy
         return self.busy
 
     def isDistant(self, target):
@@ -190,6 +191,10 @@ class RotaryDiscBySocket(SocketInstrument):
         "set active device"
         # TODO: implement the concept of several devices. A new class hierarchy is needed for the devices.
         # For now, this returns a plausible value; the index of the selected device in the attached-device list
+
+        cmd = self.command
+        devname = cmd.split()[1]
+        self.currentDevice = self.deviceByName(devname)
         return "1"
 
     @staticmethod
@@ -221,7 +226,7 @@ class RotaryDiscBySocket(SocketInstrument):
         "^CL\ *": CL_response,
         "^NSP": NSP_response,
         "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
-        "LD DS1 DV": LD_dev_DV_response,  # TODO: regexp som tar olika värden istället för DS1
+        "LD DS. DV": LD_dev_DV_response,  # TODO: regexp som tar olika värden istället för DS1
         "^BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
     }
@@ -246,9 +251,6 @@ class RotaryDiscBySocket(SocketInstrument):
             return command(self)
         return self.badCommand()
 
-    def create_devices(self):
-        self.attachedDevices = [OneRotaryDisc(name) for name in self.devices if name.startswith('DS')]
-
     @staticmethod
     def numberFromInncoCommand(s):
         "Extract a number from a command string such as 'LD -123.4 NP GO'. "
@@ -256,6 +258,14 @@ class RotaryDiscBySocket(SocketInstrument):
         # All relevant Innco Commands seem to have the number at the second position.
         words = s.split()
         return float(words[1])
+
+    def deviceByName(self, name):
+        d = {}
+        for dev in self.attachedDevices:
+            devName = dev.name
+            d[devName] = dev
+        return d[name]
+
     def __init__(self):
         super().__init__()
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
@@ -269,7 +279,9 @@ class RotaryDiscBySocket(SocketInstrument):
         self.speedInDegPerSecond = 4.9
         self.busy = False
         self.devices = ['AS1', 'DS1', 'DS2']
-        self.attachedDevices = [OneRotaryDisc('DS1'), OneRotaryDisc('DS2')]
+        self.attachedDevices = [OneRotaryDisc('DS1'),
+                                OneRotaryDisc('DS2'),
+                                OneRotaryDisc('DS3')]
         self.command = ""
         self.targetPosition = 1
         self.movementStartTime = time.time()
@@ -281,6 +293,7 @@ class RotaryDiscBySocket(SocketInstrument):
         self.limit_anticlockwise = -120
         #self.attachedDevices = []
         #self.create_devices()
+        self.currentDevice = self.attachedDevices[0]
 
 
 class OneRotaryDisc:

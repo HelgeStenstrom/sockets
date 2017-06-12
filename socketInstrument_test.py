@@ -70,7 +70,7 @@ class rotary_Tests(unittest.TestCase):
     def test_that_devices_have_names(self):
         devs = self.rd.attachedDevices
         names = [dev.name for dev in devs]
-        self.assertListEqual(names, ['DS1', 'DS2', 'DS3'])
+        self.assertListEqual(names, ['DS1', 'DS2', 'AS3'])
 
     def test_that_some_simple_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
@@ -134,6 +134,23 @@ class rotary_response_Tests(unittest.TestCase):
     def test_BU_response_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
         # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
+        cd = self.rd.currentDevice
+        cd.startPosition = 0
+        cd.movementStartTime = time.time()
+        cd.targetPosition = 0
+
+        before = self.rd.responseFunction("BU")
+        self.assertEqual(before, "0")
+        self.rd.responseFunction("LD 123.4 DG NP GO")
+        after = self.rd.responseFunction("BU")
+        self.assertEqual(after, "1")
+        cd.finalizeMovement()
+        after2 = self.rd.responseFunction("BU")
+        self.assertEqual(after2, "0")
+
+    def Qtest_BU_response_before_and_after_setting_new_position(self):
+        # Normally, these are set when the movement is started.
+        # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
         self.rd.startPosition = 0
         self.rd.movementStartTime = time.time()
         self.rd.targetPosition = 0
@@ -146,6 +163,8 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.finalizeMovement()
         after2 = self.rd.responseFunction("BU")
         self.assertEqual(after2, "0")
+
+
 
     @unittest.skip("Behövs senare, där device-klassen används.")
     def test_that_one_busy_dev_makes_whole_unit_busy(self):
@@ -162,14 +181,14 @@ class rotary_response_Tests(unittest.TestCase):
         # Försök med Mock, MagicMock
         cmd = "LD -123.4 DG NP GO"
         self.rd.responseFunction(cmd)
-        self.assertEqual(self.rd.targetPosition, -123.4)
+        self.assertEqual(self.rd.currentDevice.targetPosition, -123.4)
 
     def test_that_movement_goal_is_returned(self):
         cmd = "LD -123.4 DG NP GO"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-123.4")
 
-    def test_that_current_position_is_returned(self):
+    def Qtest_that_current_position_is_returned(self):
         self.rd.movementStartTime = time.time()
         self.rd.targetPosition = -12.3
         self.rd.startPosition = -12.3
@@ -178,6 +197,19 @@ class rotary_response_Tests(unittest.TestCase):
         cmd = "CP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-12.3")
+
+    def test_that_active_device_current_postition_is_returned(self):
+        cd = self.rd.currentDevice
+        cd.movementStartTime = time.time()
+        thePos = -123.4
+        cd.targetPosition = thePos
+        cd.startPosition = thePos
+        cd.currentPosition = thePos
+        cd.speedInDegPerSecond = 3
+        cmd = "CP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "-123.4")
+
 
     def test_that_the_speed_can_be_set(self):
         cmd = "LD 5.2 NSP"
@@ -192,30 +224,32 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(response, "3.2")
 
     def test_that_movement_takes_limited_time_and_reaches_target(self):
-        self.rd.currentPosition = 0
+        cd = self.rd.currentDevice
+        cd.currentPosition = 0
         timeItShouldTake = 0.02
-        self.rd.speedInDegPerSecond = 100/timeItShouldTake
+        cd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 DG NP GO")
         response = self.rd.responseFunction("BU")
         self.assertEqual(response, "1")
         time.sleep(timeItShouldTake*1.3)  # Need to agree with slowDown in update function.
         response = self.rd.responseFunction("BU")
-        self.assertNotEqual(self.rd.currentPosition, 0)
+        self.assertNotEqual(cd.currentPosition, 0)
         self.assertEqual(response, "0")
-        self.assertEqual(self.rd.currentPosition, 100)
+        self.assertEqual(cd.currentPosition, 100)
 
     def test_that_movement_takes_time(self):
-        self.rd.currentPosition = 0
+        cd = self.rd.currentDevice
+        cd.currentPosition = 0
         timeItShouldTake = 0.08
-        self.rd.speedInDegPerSecond = 100/timeItShouldTake
+        cd.speedInDegPerSecond = 100/timeItShouldTake
 
         self.rd.responseFunction("LD 100 DG NP GO")
         time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
         response = self.rd.responseFunction("CP")
         self.assertNotEqual(response, "0")
-        self.assertGreater(self.rd.currentPosition, 0)
-        self.assertLess(self.rd.currentPosition, 95)
+        self.assertGreater(cd.currentPosition, 0)
+        self.assertLess(cd.currentPosition, 95)
 
 class Rotary_top_level_function_tests(unittest.TestCase):
     def setUp(self):

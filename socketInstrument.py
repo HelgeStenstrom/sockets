@@ -128,6 +128,18 @@ class RotaryDiscBySocket(SocketInstrument):
     def LD_NP_GO_response(self):
         command = self.command
         assert command != ""
+        cd = self.currentDevice
+        self.startPosition = cd.currentPosition
+        cd.busy = True
+        normalTarget = self.numberFromInncoCommand(command)
+        adjust = self.adjustment(normalTarget)
+        cd.targetPosition = normalTarget + adjust
+        cd.movementStartTime = time.time()
+        return str(normalTarget)
+
+    def Old_LD_NP_GO_response(self):
+        command = self.command
+        assert command != ""
         self.startPosition = self.currentPosition
         self.busy = True
         normalTarget = self.numberFromInncoCommand(command)
@@ -150,7 +162,10 @@ class RotaryDiscBySocket(SocketInstrument):
     def isBusy(self):
         "business"
         # TODO: Ändra till att något device är Busy
-        return self.busy
+        devices = self.attachedDevices
+        states = [dev.busy for dev in devices]
+        busy = any(states)
+        return busy
 
     def isDistant(self, target):
         distance = abs(target - self.currentPosition)
@@ -167,7 +182,9 @@ class RotaryDiscBySocket(SocketInstrument):
     def CP_response(self):
         "current position"
         self.update()
-        return "%.1f" % self.currentPosition
+        self.currentDevice.update()
+        return "%.1f" % self.currentDevice.currentPosition
+        # return "%.1f" % self.currentPosition
 
     def WL_response(self):
         "clockwise limit"
@@ -205,16 +222,7 @@ class RotaryDiscBySocket(SocketInstrument):
         return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
 
     def update(self):
-        slowDown = 0.8
-        elapsed = time.time() - self.movementStartTime
-        dist = slowDown * elapsed * self.speedInDegPerSecond
-        distToTravel = self.startPosition - self.targetPosition
-        if self.isBusy():
-            if dist > abs(distToTravel):
-                self.currentPosition = self.targetPosition
-                self.busy = False
-            else:
-                self.currentPosition = self.startPosition + slowDown * self.signedSpeed() * elapsed
+        self.currentDevice.update()
 
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
@@ -281,7 +289,7 @@ class RotaryDiscBySocket(SocketInstrument):
         self.devices = ['AS1', 'DS1', 'DS2']
         self.attachedDevices = [OneRotaryDisc('DS1'),
                                 OneRotaryDisc('DS2'),
-                                OneRotaryDisc('DS3')]
+                                OneRotaryDisc('AS3')]
         self.command = ""
         self.targetPosition = 1
         self.movementStartTime = time.time()

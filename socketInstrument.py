@@ -115,7 +115,6 @@ class RotaryDiscBySocket(SocketInstrument):
 
     # DONE: implementera NSP
     # DONE: implementera LD # NSP
-    # TODO: implementera CW och CL
     # DONE: implementera att förställa målvärde från kommandoraden
 
     def Idn_response(self):
@@ -123,7 +122,8 @@ class RotaryDiscBySocket(SocketInstrument):
         return idnString
 
     def OPT_response(self):
-        return ','.join(self.devices)
+        deviceNames = [dev.name for dev in self.attachedDevices]
+        return ','.join(deviceNames)
 
     def LD_NP_GO_response(self):
         command = self.command
@@ -135,17 +135,6 @@ class RotaryDiscBySocket(SocketInstrument):
         adjust = self.adjustment(normalTarget)
         cd.targetPosition = normalTarget + adjust
         cd.movementStartTime = time.time()
-        return str(normalTarget)
-
-    def Old_LD_NP_GO_response(self):
-        command = self.command
-        assert command != ""
-        self.startPosition = self.currentPosition
-        self.busy = True
-        normalTarget = self.numberFromInncoCommand(command)
-        adjust = self.adjustment(normalTarget)
-        self.targetPosition = normalTarget + adjust
-        self.movementStartTime = time.time()
         return str(normalTarget)
 
     def adjustment(self, normalTarget):
@@ -160,20 +149,19 @@ class RotaryDiscBySocket(SocketInstrument):
         return adjust
 
     def isBusy(self):
-        "business"
-        # TODO: Ändra till att något device är Busy
+        "the whole unit is busy, because one device is."
         devices = self.attachedDevices
         states = [dev.busy for dev in devices]
         busy = any(states)
         return busy
 
     def isDistant(self, target):
-        distance = abs(target - self.currentPosition)
+        distance = abs(target - self.currentDevice.currentPosition)
         return distance > self.farDistance
 
     def BU_Response(self):
         "business"
-        self.update()
+        self.currentDevice.update()
         if self.isBusy():
             return "1"
         else:
@@ -181,32 +169,29 @@ class RotaryDiscBySocket(SocketInstrument):
 
     def CP_response(self):
         "current position"
-        self.update()
         self.currentDevice.update()
         return "%.1f" % self.currentDevice.currentPosition
-        # return "%.1f" % self.currentPosition
 
     def WL_response(self):
         "clockwise limit"
-        return "%.1f" % self.limit_clockwise
+        return "%.1f" % self.currentDevice.limit_clockwise
 
     def CL_response(self):
         "anticlockwise limit"
-        return "%.1f" % self.limit_anticlockwise
+        return "%.1f" % self.currentDevice.limit_anticlockwise
 
     def NSP_response(self):
         "current speed"
         # self.updatePositionAndBusiness()
-        return "%.1f" % self.speedInDegPerSecond
+        return "%.1f" % self.currentDevice.speedInDegPerSecond
 
     def LD_NSP_response(self):
         "new numeric speed"
-        self.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
-        return "%.1f" % self.speedInDegPerSecond
+        self.currentDevice.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
+        return "%.1f" % self.currentDevice.speedInDegPerSecond
 
     def LD_dev_DV_response(self):
         "set active device"
-        # TODO: implement the concept of several devices. A new class hierarchy is needed for the devices.
         # For now, this returns a plausible value; the index of the selected device in the attached-device list
 
         cmd = self.command
@@ -217,12 +202,6 @@ class RotaryDiscBySocket(SocketInstrument):
     @staticmethod
     def badCommand():
         return "E - x"
-
-    def signedSpeed(self):
-        return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
-
-    def update(self):
-        self.currentDevice.update()
 
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
@@ -238,11 +217,6 @@ class RotaryDiscBySocket(SocketInstrument):
         "^BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
     }
-
-    def finalizeMovement(self):
-        assert self.targetPosition is not None
-        self.currentPosition = self.targetPosition
-        self.busy = False
 
     def commandFor(self, commandString):
         rePatterns = self.patterns_to_select_command
@@ -282,25 +256,16 @@ class RotaryDiscBySocket(SocketInstrument):
         self.model = "CO3000"
         self.serial = "python"
         self.firmware = "1.02.62"
-        self.currentPosition = 0
-        self.startPosition = 0
-        self.speedInDegPerSecond = 4.9
-        self.busy = False
-        self.devices = ['AS1', 'DS1', 'DS2']
         self.attachedDevices = [OneRotaryDisc('DS1'),
                                 OneRotaryDisc('DS2'),
                                 OneRotaryDisc('AS3')]
         self.command = ""
-        self.targetPosition = 1
-        self.movementStartTime = time.time()
         self.offset = 0
         self.farDistance = 10
         self.maxTries = 5
         self.triesCount = 0
         self.limit_clockwise = 400
         self.limit_anticlockwise = -120
-        #self.attachedDevices = []
-        #self.create_devices()
         self.currentDevice = self.attachedDevices[0]
 
 

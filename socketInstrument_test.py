@@ -122,7 +122,7 @@ class rotary_response_Tests(unittest.TestCase):
     def test_that_opt_returns_options(self):
         cmd = '*OPT?'
         response = self.rd.responseFunction(cmd)
-        self.assertEqual(response, "AS1,DS1,DS2")
+        self.assertEqual(response, "DS1,DS2,AS3")
         # TODO: Justera efter ny lista med attachedDevices
 
     def test_that_starting_movement_causes_busy(self):
@@ -131,6 +131,7 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.isBusy(), True)
 
+    @unittest.skip("onödigt")
     def test_BU_response_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
         # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
@@ -166,10 +167,10 @@ class rotary_response_Tests(unittest.TestCase):
 
 
 
-    @unittest.skip("Behövs senare, där device-klassen används.")
+    # @unittest.skip("Behövs senare, där device-klassen används.")
     def test_that_one_busy_dev_makes_whole_unit_busy(self):
         devices = self.rd.attachedDevices
-        self.assertEqual(len(devices), 2)
+        self.assertGreater(len(devices), 1)
         for dev in devices:
             dev.busy = False
         self.assertFalse(self.rd.isBusy())
@@ -183,6 +184,7 @@ class rotary_response_Tests(unittest.TestCase):
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.currentDevice.targetPosition, -123.4)
 
+    # @unittest.skip("")
     def test_that_movement_goal_is_returned(self):
         cmd = "LD -123.4 DG NP GO"
         response = self.rd.responseFunction(cmd)
@@ -212,13 +214,22 @@ class rotary_response_Tests(unittest.TestCase):
 
 
     def test_that_the_speed_can_be_set(self):
+        dev1 = self.rd.deviceByName("DS1")
+        dev2 = self.rd.deviceByName("DS2")
+        self.rd.responseFunction("LD DS1 DV")
+        cd = self.rd.currentDevice
+        self.assertEqual(cd.speedInDegPerSecond, 4.9)
         cmd = "LD 5.2 NSP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "5.2")
-        self.assertEqual(self.rd.speedInDegPerSecond, 5.2)
+        self.assertEqual(cd.speedInDegPerSecond, 5.2)
+        self.rd.responseFunction("LD DS2 DV")
+        self.rd.responseFunction("LD 3.1 NSP")
+        self.assertEqual(dev1.speedInDegPerSecond, 5.2)
+        self.assertEqual(dev2.speedInDegPerSecond, 3.1)
 
     def test_that_speed_is_returned(self):
-        self.rd.speedInDegPerSecond = 3.2
+        self.rd.currentDevice.speedInDegPerSecond = 3.2
         cmd = "NSP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "3.2")
@@ -298,13 +309,14 @@ class rotary_Functions_tests(unittest.TestCase):
         pass
 
     def test_that_movement_completion_works(self):
-        self.rd.currentPosition = 0
-        self.rd.targetPosition = 123.4
+        self.rd.currentDevice.currentPosition = 0
+        self.rd.currentDevice.targetPosition = 123.4
 
-        self.rd.finalizeMovement()
+        self.rd.currentDevice.finalizeMovement()
 
         self.assertFalse(self.rd.isBusy())
-        self.assertAlmostEqual(self.rd.targetPosition, self.rd.currentPosition, "not close enough", 0.1)
+        self.assertAlmostEqual(self.rd.currentDevice.targetPosition, self.rd.currentDevice.currentPosition,
+                               "not close enough", 0.1)
 
 
 class OneRotaryDisc_tests(unittest.TestCase):
@@ -353,6 +365,7 @@ class OneRotaryDisc_tests(unittest.TestCase):
         self.assertTrue(self.dev.busy)
         self.assertGreater(self.dev.currentPosition, 0)
         self.assertLess(self.dev.currentPosition, 95)
+
 
 
 class vötsch_response_Tests(unittest.TestCase):

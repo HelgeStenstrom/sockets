@@ -70,7 +70,8 @@ class rotary_Tests(unittest.TestCase):
     def test_that_devices_have_names(self):
         devs = self.rd.attachedDevices
         names = [dev.name for dev in devs]
-        self.assertListEqual(names, ['DS1', 'DS2', 'AS3'])
+        self.assertListEqual(names, self.rd.devNamesToAttach)
+        #self.assertListEqual(names, ['DS1', 'DS2', 'AS3'])
 
     def test_that_some_simple_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
@@ -122,8 +123,8 @@ class rotary_response_Tests(unittest.TestCase):
     def test_that_opt_returns_options(self):
         cmd = '*OPT?'
         response = self.rd.responseFunction(cmd)
-        self.assertEqual(response, "DS1,DS2,AS3")
-        # TODO: Justera efter ny lista med attachedDevices
+        expected = ','.join(self.rd.devNamesToAttach)
+        self.assertEqual(response, expected)
 
     def test_that_starting_movement_causes_busy(self):
         cmd = "LD -123.4 DG NP GO"
@@ -214,16 +215,19 @@ class rotary_response_Tests(unittest.TestCase):
 
 
     def test_that_the_speed_can_be_set(self):
-        dev1 = self.rd.deviceByName("DS1")
-        dev2 = self.rd.deviceByName("DS2")
-        self.rd.responseFunction("LD DS1 DV")
+        n1, n2 = self.rd.devNamesToAttach[0:2]
+        dev1 = self.rd.deviceByName(n1)
+        dev2 = self.rd.deviceByName(n2)
+        def cmdString(name):
+            return "LD %s DV" % name
+        self.rd.responseFunction(cmdString(n1))
         cd = self.rd.currentDevice
         self.assertEqual(cd.speedInDegPerSecond, 4.9)
         cmd = "LD 5.2 NSP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "5.2")
         self.assertEqual(cd.speedInDegPerSecond, 5.2)
-        self.rd.responseFunction("LD DS2 DV")
+        self.rd.responseFunction(cmdString(n2))
         self.rd.responseFunction("LD 3.1 NSP")
         self.assertEqual(dev1.speedInDegPerSecond, 5.2)
         self.assertEqual(dev2.speedInDegPerSecond, 3.1)
@@ -271,10 +275,8 @@ class Rotary_top_level_function_tests(unittest.TestCase):
 
     def test_that_a_device_can_be_found_by_name(self):
         devs = self.rd.attachedDevices
-        dev1 = self.rd.deviceByName("DS1")
-        dev2 = self.rd.deviceByName("DS2")
-        self.assertEqual(dev1, devs[0])
-        self.assertEqual(dev2, devs[1])
+        devsByName = [self.rd.deviceByName(n) for n in self.rd.devNamesToAttach]
+        self.assertEqual(devs, devsByName)
 
 class Rotary_command_tests(unittest.TestCase):
     def setUp(self):

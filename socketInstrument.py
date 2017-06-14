@@ -129,7 +129,7 @@ class RotaryDiscBySocket(SocketInstrument):
         command = self.command
         assert command != ""
         cd = self.currentDevice
-        # self.startPosition = cd.currentPosition
+        cd.startPosition = cd.currentPosition
         cd.busy = True
         normalTarget = self.numberFromInncoCommand(command)
         adjust = self.adjustment(normalTarget)
@@ -256,9 +256,11 @@ class RotaryDiscBySocket(SocketInstrument):
         self.model = "CO3000"
         self.serial = "python"
         self.firmware = "1.02.62"
-        self.attachedDevices = [OneRotaryDisc('DS1'),
+        self.devNamesToAttach = ['DS1', 'DS2', 'AS3']
+        self.attachedDevices = [OneRotaryDisc('AS1'),
                                 OneRotaryDisc('DS2'),
                                 OneRotaryDisc('AS3')]
+        self.attachedDevices = [OneRotaryDisc(d) for d in self.devNamesToAttach]
         self.command = ""
         self.offset = 0
         self.farDistance = 10

@@ -26,6 +26,22 @@ from abc import abstractmethod, ABCMeta
 import time
 import math
 
+class Instrument:
+    # TODO: hitta på unit test för det här. Just nu är idéerna ganska vaga.
+    # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
+    # och för socket eller annat transportlager, inte ens i en basklass.
+    # Istället ska transporter och/eller konkret instrument läggas till
+    # som objektattribut.
+    # Målet är att kunna använda koden som modellerar ett instrument i unit tests,
+    # utan att blanda in transportlagret.
+
+    # Åtminstone med Socket, så är det transportlagret som anropar
+    # instrumentsimulatorn (respons-funktionen), och inte tvärt om.
+    # Därför kan man ersätta transportlagret med ett enklare, och testa att
+    # responsfunktioner blir anropade.
+
+    def __init__(self, transporter):
+        self.transporter = transporter
 
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):

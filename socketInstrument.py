@@ -81,6 +81,25 @@ class SocketInstrument(metaclass=ABCMeta):
         print("Socket is shut down or closed. Please restart.")
 
 
+class PaRsBBS(SocketInstrument):
+    def __init__(self):
+        super().__init__()
+        self.port = 5025  # According to R&S manual
+
+    def responseFunction(self, command):
+        command = command.strip()
+        return "example BBS150 response value"
+
+class PaEmpower(SocketInstrument):
+    def __init__(self):
+        super().__init__()
+        self.port = 5025  # According to R&S manual, guessing Empower has the same.
+
+    def responseFunction(self, command):
+        command = command.strip()
+        return "example Empower response value"
+
+
 class vötschBySocket(SocketInstrument):
     def __init__(self):
         super().__init__()
@@ -334,18 +353,26 @@ class OneRotaryDisc:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
-    parser.add_argument('CcType', help='Type of instrument or Vötsch model', choices=['Vc', 'Vt', 'RotaryDisc'])
+    parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
+                        choices=['Vc', 'Vt', 'RotaryDisc', 'BBS150', 'Empower'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
 
-    if args.CcType in ['Vc', 'Vt']:
+    if args.InstrumentType in ['Vc', 'Vt']:
         attachedInstrument = vötschBySocket()
-        attachedInstrument.CcType = args.CcType
+        attachedInstrument.CcType = args.InstrumentType
 
-    elif args.CcType in ['RotaryDisc']:
+    elif args.InstrumentType in ['RotaryDisc']:
         attachedInstrument = RotaryDiscBySocket()
         if args.offset:
             attachedInstrument.offset = args.offset
+
+    elif args.InstrumentType in ['BBS150']:
+        attachedInstrument = PaRsBBS()
+
+    elif args.InstrumentType in ['Empower']:
+        attachedInstrument = PaEmpower()
+
     else:
         raise NotImplementedError
 

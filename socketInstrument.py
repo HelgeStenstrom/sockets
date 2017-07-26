@@ -352,12 +352,17 @@ class OneRotaryDisc:
 
 
 def main():
+    attachedInstrument = getAttachedInstrument()
+
+    attachedInstrument.theSocket()
+
+
+def getAttachedInstrument():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
                         choices=['Vc', 'Vt', 'RotaryDisc', 'BBS150', 'Empower'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
-
     if args.InstrumentType in ['Vc', 'Vt']:
         attachedInstrument = vötschBySocket()
         attachedInstrument.CcType = args.InstrumentType
@@ -375,8 +380,7 @@ def main():
 
     else:
         raise NotImplementedError
-
-    attachedInstrument.theSocket()
+    return attachedInstrument
 
 
 if __name__ == '__main__':

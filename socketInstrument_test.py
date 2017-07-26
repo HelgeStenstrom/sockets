@@ -58,6 +58,18 @@ class main_Tests(unittest.TestCase):
         sys.argv = ["", "--offset", "3.3", "Invalid_argument"]
         self.assertRaises(SystemExit, socketInstrument.main)
 
+    def test_that_invalid_arguments_raises_SystemExit_in_function(self):
+        sys.argv = ["", "Invalid_argument"]
+        self.assertRaises(SystemExit, socketInstrument.getAttachedInstrument)
+
+    def test_that_instrumentType_is_used(self):
+        sys.argv = ["", "RotaryDisc"]
+        instrument = socketInstrument.getAttachedInstrument()
+        self.assertIsInstance(instrument, socketInstrument.RotaryDiscBySocket)
+
+        sys.argv = ["", "Empower"]
+        instrument = socketInstrument.getAttachedInstrument()
+        self.assertIsInstance(instrument, socketInstrument.PaEmpower)
 
 class rotary_Tests(unittest.TestCase):
     # TODO: testa att offset och random fungerar som kommandots argument.

@@ -57,6 +57,7 @@ class SocketInstrument(metaclass=ABCMeta):
 
         HOST = ''  # Symbolic name meaning all available interfaces
         PORT = self.port
+        print("port is ", PORT)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST, PORT))
@@ -94,10 +95,58 @@ class PaEmpower(SocketInstrument):
     def __init__(self):
         super().__init__()
         self.port = 5025  # According to R&S manual, guessing Empower has the same.
+        self.gain = 0
 
     def responseFunction(self, command):
         command = command.strip()
-        return "example Empower response value"
+
+        if command == "IN?":
+            return "Empower 2135-BBS3G6QHM"
+
+        elif command == "IS?":
+            return "fake serial#"
+
+        elif command == "IV?":
+            return "IV? response"
+
+        elif command == "G?":
+            return "%i" % self.gain*100
+
+        elif command.startswith("G"):
+            g = int(float(command[1:]))
+            self.gain = g/100.0
+            print("Gain is %d * 0.01 dB = %g dB." % (g, self.gain))
+            return ""
+
+        elif command == "MA":
+            print("Setting mode to ALC")
+            self.mode = "ALC"
+            return ""
+
+        elif command == "MV":
+            print("Setting mode to VVA")
+            self.mode = "VVA"
+            return ""
+
+        elif command == "MS":
+            print("Standby")
+            self.active = False
+            return ""
+
+        elif command == "MO":
+            print("Active")
+            self.active = True
+            return ""
+
+        elif command == "M?":
+            if self.mode == "VVA":
+                return "V"
+            elif self.mode == "ALC":
+                return "A"
+            else:
+                raise Exception
+
+        return "Default Empower response value"
 
 
 class vötschBySocket(SocketInstrument):
@@ -352,12 +401,12 @@ class OneRotaryDisc:
 
 
 def main():
-    attachedInstrument = getAttachedInstrument()
+    attachedInstrument = instrumentTypeArgument()
 
     attachedInstrument.theSocket()
 
 
-def getAttachedInstrument():
+def instrumentTypeArgument():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
                         choices=['Vc', 'Vt', 'RotaryDisc', 'BBS150', 'Empower'])

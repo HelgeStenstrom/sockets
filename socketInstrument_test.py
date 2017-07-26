@@ -60,15 +60,15 @@ class main_Tests(unittest.TestCase):
 
     def test_that_invalid_arguments_raises_SystemExit_in_function(self):
         sys.argv = ["", "Invalid_argument"]
-        self.assertRaises(SystemExit, socketInstrument.getAttachedInstrument)
+        self.assertRaises(SystemExit, socketInstrument.instrumentTypeArgument)
 
     def test_that_instrumentType_is_used(self):
         sys.argv = ["", "RotaryDisc"]
-        instrument = socketInstrument.getAttachedInstrument()
+        instrument = socketInstrument.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.RotaryDiscBySocket)
 
         sys.argv = ["", "Empower"]
-        instrument = socketInstrument.getAttachedInstrument()
+        instrument = socketInstrument.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.PaEmpower)
 
 class rotary_Tests(unittest.TestCase):

@@ -26,6 +26,7 @@ from abc import abstractmethod, ABCMeta
 import time
 import math
 
+
 class Instrument:
     # TODO: hitta på unit test för det här. Just nu är idéerna ganska vaga.
     # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
@@ -42,6 +43,7 @@ class Instrument:
 
     def __init__(self, transporter):
         self.transporter = transporter
+
 
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
@@ -89,13 +91,23 @@ class PaRsBBS(SocketInstrument):
 
     def responseFunction(self, command):
         command = command.strip()
-        return "example BBS150 response value"
+
+        if command.upper() == "*IDN?":
+            return "Rohde & Schwarz,BBA150,102044,SW:01.96,FPGA:01.05"
+
+        elif command.upper() == "SENS:NFR?":
+            return "2600000000,5900000000"
+
+        return "example BBS150 response value for '%s'" % command
+
 
 class PaEmpower(SocketInstrument):
     def __init__(self):
         super().__init__()
         self.port = 5025  # According to R&S manual, guessing Empower has the same.
         self.gain = 0
+        self.mode = "VVA"
+        self.active = False
 
     def responseFunction(self, command):
         command = command.strip()

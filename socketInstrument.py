@@ -101,13 +101,15 @@ class PaEmpower(SocketInstrument):
         command = command.strip()
 
         if command == "IN?":
-            return "Empower 2135-BBS3G6QHM"
+            return "BBS3G6QHM"
+        elif command == "IM":
+            return " Empower RF Systems, Inc."
 
         elif command == "IS?":
-            return "fake serial#"
+            return "4711"
 
         elif command == "IV?":
-            return "IV? response"
+            return "4.2"
 
         elif command == "G?":
             return "%i" % self.gain*100
@@ -140,9 +142,9 @@ class PaEmpower(SocketInstrument):
 
         elif command == "M?":
             if self.mode == "VVA":
-                return "V"
+                return "VOA"
             elif self.mode == "ALC":
-                return "A"
+                return "AOA"
             else:
                 raise Exception
 

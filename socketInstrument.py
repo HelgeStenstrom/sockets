@@ -84,7 +84,7 @@ class SocketInstrument(metaclass=ABCMeta):
         print("Socket is shut down or closed. Please restart.")
 
 
-class PaRsBBS(SocketInstrument):
+class PaRsBBA150(SocketInstrument):
     def __init__(self):
         super().__init__()
         self.port = 5025  # According to R&S manual
@@ -93,7 +93,7 @@ class PaRsBBS(SocketInstrument):
         command = command.strip()
 
         if command.upper() == "*IDN?":
-            return "Rohde & Schwarz,BBA150,102044,SW:01.96,FPGA:01.05"
+            return "Rohde & Schwarz,simulated BBA150,102044,SW:01.96,FPGA:01.05"
 
         elif command.upper() == "SENS:NFR?":
             return "2600000000,5900000000"
@@ -423,7 +423,7 @@ def main():
 def instrumentTypeArgument():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
-                        choices=['Vc', 'Vt', 'RotaryDisc', 'BBS150', 'Empower'])
+                        choices=['Vc', 'Vt', 'RotaryDisc', 'BBA150', 'Empower'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
     if args.InstrumentType in ['Vc', 'Vt']:
@@ -435,8 +435,8 @@ def instrumentTypeArgument():
         if args.offset:
             attachedInstrument.offset = args.offset
 
-    elif args.InstrumentType in ['BBS150']:
-        attachedInstrument = PaRsBBS()
+    elif args.InstrumentType in ['BBA150']:
+        attachedInstrument = PaRsBBA150()
 
     elif args.InstrumentType in ['Empower']:
         attachedInstrument = PaEmpower()

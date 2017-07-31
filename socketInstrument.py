@@ -75,11 +75,16 @@ class SocketInstrument(metaclass=ABCMeta):
                         break
                     print("Received: ", receivedCommand.strip(), "")
                     if not data:
+                        print("Received empty command")
                         break
                     r = self.responseFunction(data.decode('utf-8'))
                     response = bytes(r + '\r\n', 'utf-8')
-                    print("Sent:     %s" % r)
-                    conn.sendall(response)
+
+                    # TODO: unit test this behavior, which is new. Only send a response if there is one.
+                    # Don't send empty responses.
+                    if r:
+                        print("Sent:     '%s' (length: %d)" % (r, len(response)))
+                        conn.sendall(response)
 
         print("Socket is shut down or closed. Please restart.")
 
@@ -98,7 +103,22 @@ class PaRsBBA150(SocketInstrument):
         elif command.upper() == "SENS:NFR?":
             return "2600000000,5900000000"
 
-        return "example BBS150 response value for '%s'" % command
+        elif command.upper() == "UNIT:POW DBM":
+            return ""
+
+        elif command.upper() == "SENS:NPOW?":
+            return "47.7"
+
+        elif command.upper() == "SYST:ERR?":
+            return "Simulated error"
+
+        elif command.upper() == "CONT1:AMOD:FGA?":
+            return "47.7"
+
+        elif command[-1] == "?":
+            return "example BBS150 response value for '%s'" % command
+        else:
+            return ""
 
 
 class PaEmpower(SocketInstrument):

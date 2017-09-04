@@ -1,9 +1,6 @@
 import socketInstrument
 import unittest
-from unittest.mock import MagicMock
 import sys
-# from io import StringIO, BytesIO
-# from argparse import ArgumentError
 import time
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
@@ -70,6 +67,7 @@ class main_Tests(unittest.TestCase):
         sys.argv = ["", "Empower"]
         instrument = socketInstrument.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.PaEmpower)
+
 
 class rotary_Tests(unittest.TestCase):
     # TODO: testa att offset och random fungerar som kommandots argument.
@@ -366,7 +364,8 @@ class Ncd_response_Tests(unittest.TestCase):
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "")
 
-    def positionSetup(self, dev):
+    @staticmethod
+    def positionSetup(dev):
         # TODO: Flytta funktionen, använd den för RotaryDisc också.
         dev.movementStartTime = time.time()
         dev.targetPosition = -12.34
@@ -441,6 +440,7 @@ class Ncd_response_Tests(unittest.TestCase):
         self.assertNotEqual(response, "0")
         self.assertGreater(cd.currentPosition, 0)
         self.assertLess(cd.currentPosition, 95)
+
 
 class Ncd_top_level_function_tests(unittest.TestCase):
     def setUp(self):
@@ -533,7 +533,7 @@ class OneRotaryDisc_tests(unittest.TestCase):
 class votsch_response_Tests(unittest.TestCase):
 
     def setUp(self):
-        self.v = socketInstrument.vötschBySocket()
+        self.v = socketInstrument.votschBySocket()
 
     def test_most_parts_of_a_query(self):
         command = "$01I"

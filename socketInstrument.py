@@ -183,7 +183,7 @@ class PaEmpower(SocketInstrument):
         return "Default Empower response value"
 
 
-class vötschBySocket(SocketInstrument):
+class votschBySocket(SocketInstrument):
     def __init__(self):
         super().__init__()
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
@@ -528,7 +528,7 @@ class MaturoNcdBySocket(SocketInstrument):
     def LD_SP_response(self):
         """"new numeric speed"""
         self.currentDevice.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
-        return "" #
+        return ""
 
     def LD_dev_DV_response(self):
         """"set active device"""
@@ -621,7 +621,7 @@ def instrumentTypeArgument():
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
     if args.InstrumentType in ['Vc', 'Vt']:
-        attachedInstrument = vötschBySocket()
+        attachedInstrument = votschBySocket()
         attachedInstrument.CcType = args.InstrumentType
 
     elif args.InstrumentType in ['RotaryDisc']:

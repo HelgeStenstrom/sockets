@@ -83,7 +83,6 @@ class rotary_Tests(unittest.TestCase):
         devs = self.rd.attachedDevices
         names = [dev.name for dev in devs]
         self.assertListEqual(names, self.rd.devNamesToAttach)
-        #self.assertListEqual(names, ['DS1', 'DS2', 'AS3'])
 
     def test_that_some_simple_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
@@ -104,9 +103,6 @@ class rotary_Tests(unittest.TestCase):
                          socketInstrument.RotaryDiscBySocket.NSP_response, "Returned speed")
         self.assertEqual(self.rd.commandFor("LD DS2 DV"),
                          socketInstrument.RotaryDiscBySocket.LD_dev_DV_response, "Select current device")
-
-    def test_that_faulty_commands_yields_error_message(self):
-        self.assertEqual(self.rd.commandFor("unknown"), None)
 
     def test_distance_function(self):
         limit = self.rd.farDistance
@@ -143,24 +139,6 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertEqual(self.rd.isBusy(), False)
         self.rd.responseFunction(cmd)
         self.assertEqual(self.rd.isBusy(), True)
-
-    @unittest.skip("onödigt")
-    def test_BU_response_before_and_after_setting_new_position(self):
-        # Normally, these are set when the movement is started.
-        # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
-        cd = self.rd.currentDevice
-        cd.startPosition = 0
-        cd.movementStartTime = time.time()
-        cd.targetPosition = 0
-
-        before = self.rd.responseFunction("BU")
-        self.assertEqual(before, "0")
-        self.rd.responseFunction("LD 123.4 DG NP GO")
-        after = self.rd.responseFunction("BU")
-        self.assertEqual(after, "1")
-        cd.finalizeMovement()
-        after2 = self.rd.responseFunction("BU")
-        self.assertEqual(after2, "0")
 
     def test_BU_response_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
@@ -202,17 +180,6 @@ class rotary_response_Tests(unittest.TestCase):
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-123.4")
 
-    def test_that_current_position_is_returned(self):
-        cd = self.rd.currentDevice
-        cd.movementStartTime = time.time()
-        cd.targetPosition = -12.3
-        cd.startPosition = -12.3
-        cd.currentPosition = -12.3
-        cd.speedInDegPerSecond = 3
-        cmd = "CP"
-        response = self.rd.responseFunction(cmd)
-        self.assertEqual(response, "-12.3")
-
     def test_that_active_device_current_postition_is_returned(self):
         cd = self.rd.currentDevice
         cd.movementStartTime = time.time()
@@ -227,14 +194,16 @@ class rotary_response_Tests(unittest.TestCase):
 
 
     def test_that_the_speed_can_be_set(self):
+        # TODO: Förstå och förenkla detta test, och namnen i NCD
         n1, n2 = self.rd.devNamesToAttach[0:2]
         dev1 = self.rd.deviceByName(n1)
         dev2 = self.rd.deviceByName(n2)
+
         def cmdString(name):
             return "LD %s DV" % name
         self.rd.responseFunction(cmdString(n1))
         cd = self.rd.currentDevice
-        self.assertEqual(cd.speedInDegPerSecond, 4.9)
+        self.assertEqual(cd.speedInDegPerSecond, cd.initialSpeedInDegPerSecond)
         cmd = "LD 5.2 NSP"
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "5.2")
@@ -278,6 +247,7 @@ class rotary_response_Tests(unittest.TestCase):
         self.assertGreater(cd.currentPosition, 0)
         self.assertLess(cd.currentPosition, 95)
 
+
 class Rotary_top_level_function_tests(unittest.TestCase):
     def setUp(self):
         self.rd = socketInstrument.RotaryDiscBySocket()
@@ -289,6 +259,7 @@ class Rotary_top_level_function_tests(unittest.TestCase):
         devs = self.rd.attachedDevices
         devsByName = [self.rd.deviceByName(n) for n in self.rd.devNamesToAttach]
         self.assertEqual(devs, devsByName)
+
 
 class Rotary_command_tests(unittest.TestCase):
     def setUp(self):
@@ -302,9 +273,186 @@ class Rotary_command_tests(unittest.TestCase):
 
     def test_that_a_device_is_selected(self):
         cmd = "LD DS2 DV"
-        response = self.rd.responseFunction(cmd)
+        self.rd.responseFunction(cmd)
         # TODO: Kolla att DS1 blir current device
         self.assertEqual(self.rd.currentDevice, self.rd.deviceByName('DS2'))
+
+
+class Ncd_Tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.MaturoNcdBySocket()
+
+    def tearDown(self):
+        pass
+
+    def test_that_some_simple_commands_get_parsed(self):
+        self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.MaturoNcdBySocket.Idn_response)
+        self.assertEqual(self.rd.commandFor("CP  "), socketInstrument.MaturoNcdBySocket.CP_response)
+        self.assertEqual(self.rd.commandFor("BU  ; "), socketInstrument.MaturoNcdBySocket.BU_Response)
+
+    def test_that_parametrized_commands_get_parsed(self):
+        self.assertEqual(self.rd.commandFor("LD -123.4 DG NP GO"),
+                         socketInstrument.MaturoNcdBySocket.LD_NP_GO_response, "negative fraction")
+        self.assertEqual(self.rd.commandFor("LD 12.3 DG NP GO"),
+                         socketInstrument.MaturoNcdBySocket.LD_NP_GO_response, "postitive fraction")
+        self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
+                         socketInstrument.MaturoNcdBySocket.LD_NP_GO_response, "integer argument")
+        self.assertEqual(self.rd.commandFor("LD 7 SP"),
+                         socketInstrument.MaturoNcdBySocket.LD_SP_response, "speed on 1-8 scale")
+        self.assertEqual(self.rd.commandFor("SP"),
+                         socketInstrument.MaturoNcdBySocket.SP_response, "Returned speed")
+        self.assertEqual(self.rd.commandFor("LD 1 DV"),
+                         socketInstrument.MaturoNcdBySocket.LD_dev_DV_response, "Select current device")
+
+
+
+
+class Ncd_response_Tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.MaturoNcdBySocket()
+
+    def tearDown(self):
+        pass
+
+    def test_that_unknown_command_returns_error_message(self):
+        cmd = 'bad command'
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response[0:3], "E -")
+
+    def test_that_idn_returns_identity(self):
+        cmd = '*IDN?'
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "Maturo,NCD_266")
+
+    def test_that_opt_is_not_a_command(self):
+        cmd = "*OPT?"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "E - x")
+
+    def test_that_starting_movement_causes_busy(self):
+        cmd = "LD -123.4 DG NP GO"
+        self.assertEqual(self.rd.isBusy(), False)
+        self.rd.responseFunction(cmd)
+        self.assertEqual(self.rd.isBusy(), True)
+
+    def test_BU_response_before_and_after_setting_new_position(self):
+        # Normally, these are set when the movement is started.
+        # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
+        # TODO: Gör en test helper function, och ta bort test code duplication. NCD vs RotaryDisc
+        cd = self.rd.currentDevice
+        cd.startPosition = 0
+        cd.movementStartTime = time.time()
+        cd.targetPosition = 0
+
+        before = self.rd.responseFunction("BU")
+        self.assertEqual(before, "0")
+        self.rd.responseFunction("LD 123.4 DG NP GO")
+        after = self.rd.responseFunction("BU")
+        self.assertEqual(after, "1")
+        cd.finalizeMovement()
+        after2 = self.rd.responseFunction("BU")
+        self.assertEqual(after2, "0")
+
+    def test_that_movement_goal_is_set(self):
+        # TODO: kanske vi inte ska testa på detta sätt. Viktigare att startMovement anropas.
+        # Försök med Mock, MagicMock
+        cmd = "LD -123.4 DG NP GO"
+        self.rd.responseFunction(cmd)
+        self.assertEqual(self.rd.currentDevice.targetPosition, -123.4)
+
+    def test_that_movement_cmd_is_silent(self):
+        # The behavior of Maturo NCD is different from innco CO3000.
+        cmd = "LD -123.4 DG NP GO"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "")
+
+    def positionSetup(self, dev):
+        # TODO: Flytta funktionen, använd den för RotaryDisc också.
+        dev.movementStartTime = time.time()
+        dev.targetPosition = -12.34
+        dev.startPosition = -12.34
+        dev.currentPosition = -12.34
+        dev.speedInDegPerSecond = 3
+
+    def test_that_CP_returns_current_position_integer(self):
+        cd = self.rd.currentDevice
+        self.positionSetup(cd)
+        cmd = "CP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "-12")
+
+    def test_that_RP_returns_current_position_integer(self):
+        cd = self.rd.currentDevice
+        self.positionSetup(cd)
+        cmd = "RP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "-12.34")
+
+    def test_that_the_speed_can_be_set(self):
+        # TODO: Förstå och förenkla detta test, och namnen i RotaryDisc
+        n1, n2 = self.rd.devNamesToAttach[0:2]
+        dev1 = self.rd.deviceByName(n1)
+        dev2 = self.rd.deviceByName(n2)
+
+        def cmdString(name):
+            return "LD %s DV" % name
+        self.rd.responseFunction(cmdString(n1))
+        cd = self.rd.currentDevice
+        self.assertEqual(cd.speedInDegPerSecond, 4.9)
+        cmd = "LD 5 SP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "")
+        self.assertEqual(cd.speedInDegPerSecond, 5)
+        self.rd.responseFunction(cmdString(n2))
+        self.rd.responseFunction("LD 4 SP")
+        self.assertEqual(dev1.speedInDegPerSecond, 5)
+        self.assertEqual(dev2.speedInDegPerSecond, 4)
+
+    def test_that_speed_is_returned(self):
+        self.rd.currentDevice.speedInDegPerSecond = 7
+        cmd = "SP"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "7")
+
+    def test_that_movement_takes_limited_time_and_reaches_target(self):
+        cd = self.rd.currentDevice
+        cd.currentPosition = 0
+        timeItShouldTake = 0.02
+        cd.speedInDegPerSecond = 100/timeItShouldTake
+
+        self.rd.responseFunction("LD 100 DG NP GO")
+        response = self.rd.responseFunction("BU")
+        self.assertEqual(response, "1")
+        time.sleep(timeItShouldTake*1.3)  # Need to agree with slowDown in update function.
+        response = self.rd.responseFunction("BU")
+        self.assertNotEqual(cd.currentPosition, 0)
+        self.assertEqual(response, "0")
+        self.assertEqual(cd.currentPosition, 100)
+
+    def test_that_movement_takes_time(self):
+        cd = self.rd.currentDevice
+        cd.currentPosition = 0
+        timeItShouldTake = 0.08
+        cd.speedInDegPerSecond = 100/timeItShouldTake
+
+        self.rd.responseFunction("LD 100 DG NP GO")
+        time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
+        response = self.rd.responseFunction("CP")
+        self.assertNotEqual(response, "0")
+        self.assertGreater(cd.currentPosition, 0)
+        self.assertLess(cd.currentPosition, 95)
+
+class Ncd_top_level_function_tests(unittest.TestCase):
+    def setUp(self):
+        self.rd = socketInstrument.MaturoNcdBySocket()
+
+    def tearDown(self):
+        pass
+
+    def test_that_a_device_can_be_found_by_name(self):
+        devs = self.rd.attachedDevices
+        devsByName = [self.rd.deviceByName(n) for n in self.rd.devNamesToAttach]
+        self.assertEqual(devs, devsByName)
 
 
 class function_Tests(unittest.TestCase):
@@ -382,7 +530,7 @@ class OneRotaryDisc_tests(unittest.TestCase):
 
 
 
-class vötsch_response_Tests(unittest.TestCase):
+class votsch_response_Tests(unittest.TestCase):
 
     def setUp(self):
         self.v = socketInstrument.vötschBySocket()

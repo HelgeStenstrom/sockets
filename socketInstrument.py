@@ -537,7 +537,7 @@ class MaturoNcdBySocket(SocketInstrument):
         cmd = self.command
         devname = cmd.split()[1]
         self.currentDevice = self.deviceByName(devname)
-        return "1"
+        return ""
 
     @staticmethod
     def badCommand():

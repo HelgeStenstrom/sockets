@@ -364,6 +364,12 @@ class Ncd_response_Tests(unittest.TestCase):
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "")
 
+    def test_that_device_selection_is_silent(self):
+        # The behavior of Maturo NCD is different from innco CO3000.
+        cmd = "LD 2 DV"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "")
+
     @staticmethod
     def positionSetup(dev):
         # TODO: Flytta funktionen, använd den för RotaryDisc också.

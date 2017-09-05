@@ -73,7 +73,9 @@ class SocketInstrument(metaclass=ABCMeta):
                         receivedCommand = data.decode('utf-8')
                     except UnicodeDecodeError:
                         break
-                    print("Received: ", receivedCommand.strip(), "")
+                    receivedText = receivedCommand.strip()
+                    # assert '\r' not in receivedText
+                    print("Received: '%s'" % prettify(receivedText))
                     if not data:
                         print("Received empty command")
                         break
@@ -611,6 +613,18 @@ class MaturoNcdBySocket(SocketInstrument):
         self.limit_clockwise = 400
         self.limit_anticlockwise = -120
         self.currentDevice = self.attachedDevices[0]
+
+
+def prettify(unpretty):
+    result = ""
+    for char in unpretty:
+        if char == '\r':
+            result += '<CR>'
+        elif char == '\n':
+            result += '<LF>'
+        else:
+            result += char
+    return result
 
 
 def main():

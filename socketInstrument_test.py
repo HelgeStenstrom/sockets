@@ -456,8 +456,7 @@ class Ncd_response_Tests(unittest.TestCase):
         current = self.rd.currentDevice
         current.busy = True
         cmd = "ST"
-        response = self.rd.responseFunction(cmd)
-        #self.assertEqual(response, "")
+        self.rd.responseFunction(cmd)
         self.assertEqual(current.busy, False)
 
 
@@ -479,6 +478,12 @@ class function_Tests(unittest.TestCase):
         command = "LD -123.3 DG NP GO"
         number = socketInstrument.RotaryDiscBySocket.numberFromInncoCommand(command)
         self.assertEqual(number, -123.3)
+
+    def test_prettyprinting_nonprints(self):
+        sample = ".\n.\r."
+        expected = ".<LF>.<CR>."
+        actual = socketInstrument.prettify(sample)
+        self.assertEqual(actual, expected)
 
 
 class rotary_Functions_tests(unittest.TestCase):

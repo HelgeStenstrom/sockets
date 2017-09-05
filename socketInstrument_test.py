@@ -447,6 +447,19 @@ class Ncd_response_Tests(unittest.TestCase):
         self.assertGreater(cd.currentPosition, 0)
         self.assertLess(cd.currentPosition, 95)
 
+    def test_that_ST_is_silent(self):
+        cmd = "ST"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "")
+
+    def test_that_ST_stops_the_movement(self):
+        current = self.rd.currentDevice
+        current.busy = True
+        cmd = "ST"
+        response = self.rd.responseFunction(cmd)
+        #self.assertEqual(response, "")
+        self.assertEqual(current.busy, False)
+
 
 class Ncd_top_level_function_tests(unittest.TestCase):
     def setUp(self):

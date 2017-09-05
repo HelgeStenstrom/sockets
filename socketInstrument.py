@@ -525,6 +525,10 @@ class MaturoNcdBySocket(SocketInstrument):
         # self.updatePositionAndBusiness()
         return "%.0f" % self.currentDevice.speedInDegPerSecond
 
+    def ST_response(self):
+        self.currentDevice.busy = False
+        return ""
+
     def LD_SP_response(self):
         """"new numeric speed"""
         self.currentDevice.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
@@ -552,6 +556,7 @@ class MaturoNcdBySocket(SocketInstrument):
         "^WL\ *": WL_response,
         "^CL\ *": CL_response,
         "^SP": SP_response,
+        "^ST": ST_response,
         "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
         "LD \d DV": LD_dev_DV_response,
         "^BU(\ )*": BU_Response,

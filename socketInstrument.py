@@ -514,14 +514,6 @@ class MaturoNcdBySocket(SocketInstrument):
         self.currentDevice.update()
         return "%.2f" % self.currentDevice.currentPosition
 
-    def WL_response(self):
-        """"clockwise limit"""
-        return "%.1f" % self.currentDevice.limit_clockwise
-
-    def CL_response(self):
-        """"anticlockwise limit"""
-        return "%.1f" % self.currentDevice.limit_anticlockwise
-
     def SP_response(self):
         """"current speed"""
         # self.updatePositionAndBusiness()
@@ -555,8 +547,6 @@ class MaturoNcdBySocket(SocketInstrument):
         "\*IDN\?":   Idn_response,
         "^CP\ *": CP_response,
         "^RP\ *": RP_response,
-        "^WL\ *": WL_response,
-        "^CL\ *": CL_response,
         "^SP": SP_response,
         "^ST": ST_response,
         "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,

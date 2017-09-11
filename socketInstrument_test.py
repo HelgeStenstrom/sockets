@@ -459,6 +459,22 @@ class Ncd_response_Tests(unittest.TestCase):
         self.rd.responseFunction(cmd)
         self.assertEqual(current.busy, False)
 
+    def test_that_limits_can_be_set_and_read_back(self):
+        current = self.rd.currentDevice
+
+        # exercise SUT, pre-conditions
+        cmd = "LD 123 DG WL"
+        response = self.rd.responseFunction(cmd)
+        self.assertEqual(response, "")
+        cmd = "LD -93.2 DG CL"
+        self.rd.responseFunction(cmd)
+        self.assertEqual(response, "")
+
+        # check result
+        rightLimit = self.rd.responseFunction("WL")
+        leftLimit = self.rd.responseFunction("CL")
+        self.assertEqual(rightLimit, "123.00")
+        self.assertEqual(leftLimit, "-93.20")
 
 class Ncd_top_level_function_tests(unittest.TestCase):
     def setUp(self):

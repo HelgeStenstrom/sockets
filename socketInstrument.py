@@ -401,8 +401,8 @@ class OneRotaryDisc:
         self.targetPosition = 1
         self.movementStartTime = time.time()
         self.triesCount = 0
-        self.limit_clockwise = 400
-        self.limit_anticlockwise = -120
+        self.limit_clockwise = 90
+        self.limit_anticlockwise = -91
         self.slowDown = slowDown
 
     def get_currentPosition(self):
@@ -514,6 +514,14 @@ class MaturoNcdBySocket(SocketInstrument):
         self.currentDevice.update()
         return "%.2f" % self.currentDevice.currentPosition
 
+    def WL_response(self):
+        """"clockwise limit"""
+        return "%.2f" % self.currentDevice.limit_clockwise
+
+    def CL_response(self):
+        """"anticlockwise limit"""
+        return "%.2f" % self.currentDevice.limit_anticlockwise
+
     def SP_response(self):
         """"current speed"""
         # self.updatePositionAndBusiness()
@@ -537,6 +545,22 @@ class MaturoNcdBySocket(SocketInstrument):
         self.currentDevice = self.deviceByName(devname)
         return ""
 
+    def LD_x_DG_WL_response(self):
+        command = self.command
+        cd = self.currentDevice
+        limit = self.numberFromInncoCommand(command)
+        cd.limit_clockwise = limit
+        return ""
+
+    def LD_x_DG_CL_response(self):
+        command = self.command
+        cd = self.currentDevice
+        limit = self.numberFromInncoCommand(command)
+        cd.limit_anticlockwise = limit
+        return ""
+
+
+
     @staticmethod
     def badCommand():
         return "E - x"
@@ -547,9 +571,13 @@ class MaturoNcdBySocket(SocketInstrument):
         "\*IDN\?":   Idn_response,
         "^CP\ *": CP_response,
         "^RP\ *": RP_response,
+        "^WL\ *": WL_response,
+        "^CL\ *": CL_response,
         "^SP": SP_response,
         "^ST": ST_response,
         "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
+        "LD [-]?\d+(\.\d+)? DG WL": LD_x_DG_WL_response,
+        "LD [-]?\d+(\.\d+)? DG CL": LD_x_DG_CL_response,
         "LD \d DV": LD_dev_DV_response,
         "^BU(\ )*": BU_Response,
         "LD [-]?\d+(\.\d+)? SP": LD_SP_response
@@ -600,8 +628,8 @@ class MaturoNcdBySocket(SocketInstrument):
         self.farDistance = 10
         self.maxTries = 5
         self.triesCount = 0
-        self.limit_clockwise = 400
-        self.limit_anticlockwise = -120
+        #self.limit_clockwise = 90
+        #self.limit_anticlockwise = -90
         self.currentDevice = self.attachedDevices[0]
 
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Helge Stenström 2016-2017
+
 # Fungerar i python3.
 
 # From
@@ -628,9 +630,80 @@ class MaturoNcdBySocket(SocketInstrument):
         self.farDistance = 10
         self.maxTries = 5
         self.triesCount = 0
-        #self.limit_clockwise = 90
-        #self.limit_anticlockwise = -90
+        # self.limit_clockwise = 90
+        # self.limit_anticlockwise = -90
         self.currentDevice = self.attachedDevices[0]
+
+
+class LundBox(SocketInstrument):
+
+    def __init__(self):
+        self.h, self.v, self.t, self.f = (None, None, None, None)
+        self.command = None
+        super().__init__()
+
+
+    def commandFor(self, commandString):
+        rePatterns = self.patterns_to_select_command
+        for rePattern in rePatterns:
+            if re.match(rePattern, commandString):
+                return self.patterns_to_select_command[rePattern]
+        return None  # "no match"
+
+    def responseFunction(self, commandString):
+        commandString = commandString.strip()
+        command = self.commandFor(commandString)
+        if command:
+            self.command = commandString
+            return command(self)
+        return self.badCommand()
+
+    def statusResponse(self):
+        return "%.1f, %.1f, %.1f, %.1f" % (self.h, self.v, self.t, self.f)
+
+    def zeroResponse(self):
+        self.h, self.v, self.t, self.f = (0, 0, 0, 0)
+        return "ack"
+
+    def hToResponse(self):
+        self.h = self.numberFromCommand(self.command)
+        return "ack"
+
+    def vToResponse(self):
+        self.v = self.numberFromCommand(self.command)
+        return "ack"
+
+    def tToResponse(self):
+        self.t = self.numberFromCommand(self.command)
+        return "ack"
+
+    def fToResponse(self):
+        self.f = self.numberFromCommand(self.command)
+        return "ack"
+
+    @staticmethod
+    def badCommand():
+        return "nack"
+
+    @staticmethod
+    def numberFromCommand(s):
+        """Extract a number from a command string such as 'move_h_to -123.4'. """
+
+        # All relevant commands seem to have the number at the second position.
+        words = s.split()
+        return float(words[1])
+
+
+    patterns_to_select_command = {
+        # Just enough to recognize which command is being sent. Extraction of values is done in other places.
+        "en re": "vad den matchar",
+        "mv_to_zero": zeroResponse,
+        "move_h_to [-]?\d+(\.\d+)?": hToResponse,
+        "move_v_to [-]?\d+(\.\d+)?": vToResponse,
+        "move_t_to [-]?\d+(\.\d+)?": tToResponse,
+        "move_f_to [-]?\d+(\.\d+)?": fToResponse,
+        "status": statusResponse
+    }
 
 
 def prettify(unpretty):
@@ -654,7 +727,7 @@ def main():
 def instrumentTypeArgument():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
-                        choices=['Vc', 'Vt', 'RotaryDisc', 'NCD', 'BBA150', 'Empower'])
+                        choices=['Vc', 'Vt', 'RotaryDisc', 'NCD', 'BBA150', 'Empower', 'Lund'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
     if args.InstrumentType in ['Vc', 'Vt']:
@@ -674,6 +747,9 @@ def instrumentTypeArgument():
 
     elif args.InstrumentType in ['Empower']:
         attachedInstrument = PaEmpower()
+
+    elif args.InstrumentType == "Lund":
+        attachedInstrument = LundBox()
 
     else:
         raise NotImplementedError

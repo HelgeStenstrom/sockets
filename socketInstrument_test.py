@@ -59,14 +59,21 @@ class main_Tests(unittest.TestCase):
         sys.argv = ["", "Invalid_argument"]
         self.assertRaises(SystemExit, socketInstrument.instrumentTypeArgument)
 
-    def test_that_instrumentType_is_used(self):
+    def test_cmd_line_argument_RotaryDisc(self):
         sys.argv = ["", "RotaryDisc"]
         instrument = socketInstrument.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.RotaryDiscBySocket)
 
+    def test_cmd_line_argument_Empower(self):
         sys.argv = ["", "Empower"]
         instrument = socketInstrument.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.PaEmpower)
+
+    def test_cmd_line_argument_Lund(self):
+        sys.argv = ["", "Lund"]
+        instrument = socketInstrument.instrumentTypeArgument()
+        self.assertIsInstance(instrument, socketInstrument.LundBox)
+
 
 
 class rotary_Tests(unittest.TestCase):
@@ -460,8 +467,6 @@ class Ncd_response_Tests(unittest.TestCase):
         self.assertEqual(current.busy, False)
 
     def test_that_limits_can_be_set_and_read_back(self):
-        current = self.rd.currentDevice
-
         # exercise SUT, pre-conditions
         cmd = "LD 123 DG WL"
         response = self.rd.responseFunction(cmd)
@@ -475,6 +480,7 @@ class Ncd_response_Tests(unittest.TestCase):
         leftLimit = self.rd.responseFunction("CL")
         self.assertEqual(rightLimit, "123.00")
         self.assertEqual(leftLimit, "-93.20")
+
 
 class Ncd_top_level_function_tests(unittest.TestCase):
     def setUp(self):
@@ -500,6 +506,51 @@ class function_Tests(unittest.TestCase):
         expected = ".<LF>.<CR>."
         actual = socketInstrument.prettify(sample)
         self.assertEqual(actual, expected)
+
+
+class LundTests(unittest.TestCase):
+    def setUp(self):
+        self.box = socketInstrument.LundBox()
+
+    def testCreation(self):
+        pass
+
+    def test_that_status_returns_positions(self):
+        (self.box.h, self.box.v, self.box.t, self.box.f) = (11, 12, 13, 14)
+        expectedStatus = "11.0, 12.0, 13.0, 14.0"
+        response = self.box.responseFunction("status")
+        self.assertEqual(expectedStatus, response)
+
+    def test_that_zero_cmd_sets_zero_internally(self):
+        self.box.responseFunction("mv_to_zero")
+        self.assertEqual((self.box.h, self.box.v, self.box.t, self.box.f),
+                         (0, 0, 0, 0))
+
+
+    def test_that_zero_cmd_sets_zero(self):
+        self.box.responseFunction("mv_to_zero")
+        response = self.box.responseFunction("status")
+        self.assertEqual(response, "0.0, 0.0, 0.0, 0.0")
+
+    def test_that_move_h_moves(self):
+        self.box.responseFunction("move_h_to -12.3")
+        self.assertEqual(self.box.h, -12.3)
+
+    def test_that_move_v_moves(self):
+        self.box.responseFunction("move_v_to 22")
+        self.assertEqual(self.box.v, 22)
+
+    def test_that_move_t_moves(self):
+        self.box.responseFunction("move_t_to 33")
+        self.assertEqual(self.box.t, 33)
+
+    def test_that_move_f_moves(self):
+        self.box.responseFunction("move_f_to 44")
+        self.assertEqual(self.box.f, 44)
+
+    def test_that_bad_commands_get_nack(self):
+        response = self.box.responseFunction("bad commmand")
+        self.assertEqual(response, "nack")
 
 
 class rotary_Functions_tests(unittest.TestCase):
@@ -609,6 +660,7 @@ class votsch_response_Tests(unittest.TestCase):
         response = self.v.responseFunction(command)
         # TODO: check what the actual response of a Vötsch is, and test for that instead.
         self.assertTrue(response.startswith("ASCII"))
+
 
 if __name__ == '__main__':
     unittest.main()

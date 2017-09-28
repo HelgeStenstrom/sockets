@@ -69,10 +69,10 @@ class main_Tests(unittest.TestCase):
         instrument = socketInstrument.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.PaEmpower)
 
-    def test_cmd_line_argument_Lund(self):
-        sys.argv = ["", "Lund"]
+    def test_cmd_line_argument_Optimus(self):
+        sys.argv = ["", "Optimus"]
         instrument = socketInstrument.instrumentTypeArgument()
-        self.assertIsInstance(instrument, socketInstrument.LundBox)
+        self.assertIsInstance(instrument, socketInstrument.Optimus)
 
 
 
@@ -508,9 +508,9 @@ class function_Tests(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
-class LundTests(unittest.TestCase):
+class OptimusTests(unittest.TestCase):
     def setUp(self):
-        self.box = socketInstrument.LundBox()
+        self.box = socketInstrument.Optimus()
 
     def testCreation(self):
         pass

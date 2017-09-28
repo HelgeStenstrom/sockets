@@ -635,7 +635,7 @@ class MaturoNcdBySocket(SocketInstrument):
         self.currentDevice = self.attachedDevices[0]
 
 
-class LundBox(SocketInstrument):
+class Optimus(SocketInstrument):
 
     def __init__(self):
         self.h, self.v, self.t, self.f = (None, None, None, None)
@@ -727,7 +727,7 @@ def main():
 def instrumentTypeArgument():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
-                        choices=['Vc', 'Vt', 'RotaryDisc', 'NCD', 'BBA150', 'Empower', 'Lund'])
+                        choices=['Vc', 'Vt', 'RotaryDisc', 'NCD', 'BBA150', 'Empower', 'Optimus'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
     if args.InstrumentType in ['Vc', 'Vt']:
@@ -748,8 +748,8 @@ def instrumentTypeArgument():
     elif args.InstrumentType in ['Empower']:
         attachedInstrument = PaEmpower()
 
-    elif args.InstrumentType == "Lund":
-        attachedInstrument = LundBox()
+    elif args.InstrumentType == "Optimus":
+        attachedInstrument = Optimus()
 
     else:
         raise NotImplementedError

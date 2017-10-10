@@ -485,6 +485,8 @@ class Ncd_response_Tests(unittest.TestCase):
 class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def setUp(self):
         self.ncd = socketInstrument.MaturoNCD()
+        self.ncd.currentDevice = self.ncd.deviceByName("0")
+        self.assertIsInstance(self.ncd.currentDevice, socketInstrument.AntennaStand)
 
     def test_polarization_commands(self):
         response = self.ncd.responseFunction("PV")
@@ -494,6 +496,28 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
         response = self.ncd.responseFunction("PH")
         hResponse = self.ncd.responseFunction("P?")
         self.assertEqual(hResponse, "0")
+
+    def test_sp_command_on_antenna_stand(self):
+        antennaStand = self.ncd.deviceByName("0")
+        # Precondition
+        self.assertIsInstance(antennaStand, socketInstrument.AntennaStand, "we need an AntennaStand for the test")
+
+        self.ncd.currentDevice = antennaStand
+        response = self.ncd.responseFunction("SP?")
+        self.assertEqual(response, "E - V")
+
+    def test_pol_command_on_rotary_disc(self):
+        ttDevice = self.ncd.deviceByName("1")
+        # Precondition
+        self.assertIsInstance(ttDevice, socketInstrument.OneRotaryDisc, "we need a OneRotaryDisc for the test")
+
+        self.ncd.currentDevice = ttDevice
+        response = self.ncd.responseFunction("P?")
+        self.assertEqual(response, "E - V")
+        response = self.ncd.responseFunction("PH")
+        self.assertEqual(response, "E - V")
+        response = self.ncd.responseFunction("PV")
+        self.assertEqual(response, "E - V")
 
 
 

@@ -542,7 +542,10 @@ class MaturoNCD(SocketInstrument):
     def SP_response(self):
         """"current speed"""
         # self.updatePositionAndBusiness()
-        return "%.0f" % self.currentDevice.speedInDegPerSecond
+        try:
+            return "%.0f" % self.currentDevice.speedInDegPerSecond
+        except AttributeError:
+            return "E - V"
 
     def ST_response(self):
         self.currentDevice.busy = False
@@ -577,20 +580,31 @@ class MaturoNCD(SocketInstrument):
         return ""
 
     def PH_response(self):
-        self.currentDevice.polarization = "H"
-        return ""
+        dev = self.currentDevice
+        if isinstance(dev, AntennaStand):
+            dev.polarization = "H"
+            return ""
+        else:
+            return "E - V"
 
     def PV_response(self):
-        self.currentDevice.polarization = "V"
-        return ""
+        dev = self.currentDevice
+        if isinstance(dev, AntennaStand):
+            dev.polarization = "V"
+            return ""
+        else:
+            return "E - V"
 
     def P_response(self):
         cd = self.currentDevice
-        pol =  self.currentDevice.polarization
-        assert pol in ["H", "V"]
-        if pol == "V":
-            return "1"
-        return "0"
+        try:
+            pol = self.currentDevice.polarization
+            assert pol in ["H", "V"]
+            if pol == "V":
+                return "1"
+            return "0"
+        except AttributeError:
+            return "E - V"
 
     @staticmethod
     def badCommand():

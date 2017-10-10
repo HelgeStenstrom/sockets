@@ -389,16 +389,18 @@ class RotaryDiscBySocket(SocketInstrument):
         self.limit_anticlockwise = -120
         self.currentDevice = self.attachedDevices[0]
 
-
-class OneRotaryDisc:
-    def __init__(self, name, slowDown=0):
+class SubDevice:
+    def __init__(self, name):
         self.name = name
+        self.busy = False
+
+class OneRotaryDisc(SubDevice):
+    def __init__(self, name, slowDown=0):
+        super().__init__(name)
         self.currentPosition = 0
         self.startPosition = 0
-        self.initialSpeedInDegPerSecond = 4.9
-        self.speedInDegPerSecond = self.initialSpeedInDegPerSecond
-        self.initialSpeed = 3
-        self.speed = self.initialSpeed
+        self.speedInDegPerSecond = 4.9
+        self.speed = 3
         self.busy = False
         self.targetPosition = 1
         self.movementStartTime = time.time()
@@ -438,7 +440,20 @@ class OneRotaryDisc:
         self.busy = False
 
 
-class MaturoNcdBySocket(SocketInstrument):
+class AntennaStand(SubDevice):
+    def __init__(self, name):
+        super().__init__(name)
+        self.polarization = None
+
+    def setPolarization(self, p):
+        if p not in ['V', 'H']:
+            raise ValueError
+        self.polarization = p
+
+    def getPolarization(self):
+        return self.polarization
+
+class MaturoNCD(SocketInstrument):
 
     # Current problems (related to OneTE VisaConnector):
 
@@ -561,7 +576,21 @@ class MaturoNcdBySocket(SocketInstrument):
         cd.limit_anticlockwise = limit
         return ""
 
+    def PH_response(self):
+        self.currentDevice.polarization = "H"
+        return ""
 
+    def PV_response(self):
+        self.currentDevice.polarization = "V"
+        return ""
+
+    def P_response(self):
+        cd = self.currentDevice
+        pol =  self.currentDevice.polarization
+        assert pol in ["H", "V"]
+        if pol == "V":
+            return "1"
+        return "0"
 
     @staticmethod
     def badCommand():
@@ -582,7 +611,10 @@ class MaturoNcdBySocket(SocketInstrument):
         "LD [-]?\d+(\.\d+)? DG CL": LD_x_DG_CL_response,
         "LD \d DV": LD_dev_DV_response,
         "^BU(\ )*": BU_Response,
-        "LD [-]?\d+(\.\d+)? SP": LD_SP_response
+        "LD [-]?\d+(\.\d+)? SP": LD_SP_response,
+        "PH": PH_response,
+        "PV": PV_response,
+        "P\?": P_response
     }
 
     def commandFor(self, commandString):
@@ -623,8 +655,10 @@ class MaturoNcdBySocket(SocketInstrument):
         self.model = "NCD"
         self.serial = "266"
         # self.firmware = "1.02.62"
-        self.devNamesToAttach = ['1', '2', '3']
-        self.attachedDevices = [OneRotaryDisc(d) for d in self.devNamesToAttach]
+
+        # Unit tests rely on devices 1 and 3 being RotaryDiscs, and 0 an AntennaStand.
+        self.devNamesToAttach = ['3', '1', '0']
+        self.attachedDevices = [OneRotaryDisc('1'), OneRotaryDisc('3'), AntennaStand('0')]
         self.command = ""
         self.offset = 0
         self.farDistance = 10
@@ -740,7 +774,7 @@ def instrumentTypeArgument():
             attachedInstrument.offset = args.offset
 
     elif args.InstrumentType == 'NCD':
-        attachedInstrument = MaturoNcdBySocket()
+        attachedInstrument = MaturoNCD()
 
     elif args.InstrumentType in ['BBA150']:
         attachedInstrument = PaRsBBA150()

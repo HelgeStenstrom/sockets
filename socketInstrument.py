@@ -443,7 +443,7 @@ class OneRotaryDisc(SubDevice):
 class AntennaStand(SubDevice):
     def __init__(self, name):
         super().__init__(name)
-        self.polarization = None
+        self.polarization = "H"
 
     def setPolarization(self, p):
         if p not in ['V', 'H']:
@@ -643,7 +643,10 @@ class MaturoNCD(SocketInstrument):
         command = self.commandFor(commandString)
         if command:
             self.command = commandString
-            return command(self)
+            try:
+                return command(self)
+            except AttributeError:
+                return "E - V"
         return self.badCommand()
 
     @staticmethod

@@ -5,6 +5,7 @@ import time
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
 
+
 @unittest.skip("Skipping tests that print.")
 class Tests_with_print(unittest.TestCase):
     def setUp(self):

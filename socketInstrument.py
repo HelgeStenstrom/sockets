@@ -389,10 +389,12 @@ class RotaryDiscBySocket(SocketInstrument):
         self.limit_anticlockwise = -120
         self.currentDevice = self.attachedDevices[0]
 
+
 class SubDevice:
     def __init__(self, name):
         self.name = name
         self.busy = False
+
 
 class OneRotaryDisc(SubDevice):
     def __init__(self, name, slowDown=0):
@@ -452,6 +454,7 @@ class AntennaStand(SubDevice):
 
     def getPolarization(self):
         return self.polarization
+
 
 class MaturoNCD(SocketInstrument):
 
@@ -596,7 +599,6 @@ class MaturoNCD(SocketInstrument):
             return "E - V"
 
     def P_response(self):
-        cd = self.currentDevice
         try:
             pol = self.currentDevice.polarization
             assert pol in ["H", "V"]
@@ -683,7 +685,7 @@ class MaturoNCD(SocketInstrument):
         self.triesCount = 0
         # self.limit_clockwise = 90
         # self.limit_anticlockwise = -90
-        self.currentDevice = self.attachedDevices[0]
+        self.currentDevice = self.attachedDevices[2]
 
 
 class Optimus(SocketInstrument):

@@ -5,7 +5,7 @@ import time
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
 
-
+@unittest.skip("Skipping tests that print.")
 class Tests_with_print(unittest.TestCase):
     def setUp(self):
         pass
@@ -14,14 +14,14 @@ class Tests_with_print(unittest.TestCase):
         pass
 
     @unittest.skip("Vill inte ha utskrifter till konsolen.")
-    def Qtest_that_printouts_can_be_tested(self):
+    def test_that_printouts_can_be_tested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
         print("some error", file=sys.stderr)
         self.assertIn("some error", sys.stderr.getvalue())
 
     @unittest.skip("Vill inte ha utskrifter till konsolen.")
-    def Qtest_printing(self):
+    def test_printing(self):
         # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
         # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
         print("a string to be tested")
@@ -311,11 +311,10 @@ class Ncd_Tests(unittest.TestCase):
                          socketInstrument.MaturoNCD.LD_dev_DV_response, "Select current device")
 
 
-
-
-class Ncd_response_Tests(unittest.TestCase):
+class Ncd_response_FrontDoor_Tests(unittest.TestCase):
     def setUp(self):
         self.ncd = socketInstrument.MaturoNCD()
+        self.ncd.responseFunction("LD 1 DV")
 
     def tearDown(self):
         pass
@@ -334,37 +333,6 @@ class Ncd_response_Tests(unittest.TestCase):
         cmd = "*OPT?"
         response = self.ncd.responseFunction(cmd)
         self.assertEqual(response, "E - x")
-
-    def test_that_starting_movement_causes_busy(self):
-        cmd = "LD -123.4 DG NP GO"
-        self.assertEqual(self.ncd.isBusy(), False)
-        self.ncd.responseFunction(cmd)
-        self.assertEqual(self.ncd.isBusy(), True)
-
-    def test_BU_response_before_and_after_setting_new_position(self):
-        # Normally, these are set when the movement is started.
-        # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
-        # TODO: Gör en test helper function, och ta bort test code duplication. NCD vs RotaryDisc
-        cd = self.ncd.currentDevice
-        cd.startPosition = 0
-        cd.movementStartTime = time.time()
-        cd.targetPosition = 0
-
-        before = self.ncd.responseFunction("BU")
-        self.assertEqual(before, "0")
-        self.ncd.responseFunction("LD 123.4 DG NP GO")
-        after = self.ncd.responseFunction("BU")
-        self.assertEqual(after, "1")
-        cd.finalizeMovement()
-        after2 = self.ncd.responseFunction("BU")
-        self.assertEqual(after2, "0")
-
-    def test_that_movement_goal_is_set(self):
-        # TODO: kanske vi inte ska testa på detta sätt. Viktigare att startMovement anropas.
-        # Försök med Mock, MagicMock
-        cmd = "LD -123.4 DG NP GO"
-        self.ncd.responseFunction(cmd)
-        self.assertEqual(self.ncd.currentDevice.targetPosition, -123.4)
 
     def test_that_movement_cmd_is_silent(self):
         # The behavior of Maturo NCD is different from innco CO3000.
@@ -400,6 +368,52 @@ class Ncd_response_Tests(unittest.TestCase):
         cmd = "RP"
         response = self.ncd.responseFunction(cmd)
         self.assertEqual(response, "-12.34")
+
+    def test_that_ST_is_silent(self):
+        cmd = "ST"
+        response = self.ncd.responseFunction(cmd)
+        self.assertEqual(response, "")
+
+
+class Ncd_response_BackDoor_Tests(unittest.TestCase):
+    def setUp(self):
+        self.ncd = socketInstrument.MaturoNCD()
+        rotDevices = [dev for dev in self.ncd.attachedDevices if isinstance(dev, socketInstrument.OneRotaryDisc)]
+        self.ncd.currentDevice = rotDevices[0]
+
+    def tearDown(self):
+        pass
+
+    def test_that_starting_movement_causes_busy(self):
+        cmd = "LD -123.4 DG NP GO"
+        self.assertEqual(self.ncd.isBusy(), False)
+        self.ncd.responseFunction(cmd)
+        self.assertEqual(self.ncd.isBusy(), True)
+
+    def test_BU_response_before_and_after_setting_new_position(self):
+        # Normally, these are set when the movement is started.
+        # TODO: Dela upp i två tester: OneRotaryDisc busy-flagga, samt att de påverkar isBusy() i denna klass
+        # TODO: Gör en test helper function, och ta bort test code duplication. NCD vs RotaryDisc
+        cd = self.ncd.currentDevice
+        cd.startPosition = 0
+        cd.movementStartTime = time.time()
+        cd.targetPosition = 0
+
+        before = self.ncd.responseFunction("BU")
+        self.assertEqual(before, "0")
+        self.ncd.responseFunction("LD 123.4 DG NP GO")
+        after = self.ncd.responseFunction("BU")
+        self.assertEqual(after, "1")
+        cd.finalizeMovement()
+        after2 = self.ncd.responseFunction("BU")
+        self.assertEqual(after2, "0")
+
+    def test_that_movement_goal_is_set(self):
+        # TODO: kanske vi inte ska testa på detta sätt. Viktigare att startMovement anropas.
+        # Försök med Mock, MagicMock
+        cmd = "LD -123.4 DG NP GO"
+        self.ncd.responseFunction(cmd)
+        self.assertEqual(self.ncd.currentDevice.targetPosition, -123.4)
 
     def test_that_the_speed_can_be_set(self):
         # TODO: Förstå och förenkla detta test, och namnen i RotaryDisc
@@ -455,11 +469,6 @@ class Ncd_response_Tests(unittest.TestCase):
         self.assertGreater(cd.currentPosition, 0)
         self.assertLess(cd.currentPosition, 95)
 
-    def test_that_ST_is_silent(self):
-        cmd = "ST"
-        response = self.ncd.responseFunction(cmd)
-        self.assertEqual(response, "")
-
     def test_that_ST_stops_the_movement(self):
         current = self.ncd.currentDevice
         current.busy = True
@@ -482,6 +491,7 @@ class Ncd_response_Tests(unittest.TestCase):
         self.assertEqual(rightLimit, "123.00")
         self.assertEqual(leftLimit, "-93.20")
 
+
 class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def setUp(self):
         self.ncd = socketInstrument.MaturoNCD()
@@ -489,11 +499,11 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
         self.assertIsInstance(self.ncd.currentDevice, socketInstrument.AntennaStand)
 
     def test_polarization_commands(self):
-        response = self.ncd.responseFunction("PV")
+        self.ncd.responseFunction("PV")
         vResponse = self.ncd.responseFunction("P?")
         self.assertEqual(vResponse, "1")
 
-        response = self.ncd.responseFunction("PH")
+        self.ncd.responseFunction("PH")
         hResponse = self.ncd.responseFunction("P?")
         self.assertEqual(hResponse, "0")
 

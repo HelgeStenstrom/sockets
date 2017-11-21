@@ -693,7 +693,16 @@ class Optimus(SocketInstrument):
     def __init__(self):
         self.h, self.v, self.t, self.f = (None, None, None, None)
         self.command = None
+        self.vendor = "Ericsson"
+        self.model = "Optimus"
+        self.serial = "123"
+        self.firmwareRevision = "PA1"
         super().__init__()
+
+    def Idn_response(self):
+        # idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
+        idnString = self.vendor + ', ' + self.model + ', ' + self.serial + ', ' + self.firmwareRevision
+        return idnString
 
 
     def commandFor(self, commandString):
@@ -755,6 +764,7 @@ class Optimus(SocketInstrument):
         "move_v_to [-]?\d+(\.\d+)?": vToResponse,
         "move_t_to [-]?\d+(\.\d+)?": tToResponse,
         "move_f_to [-]?\d+(\.\d+)?": fToResponse,
+        "\*IDN\?": Idn_response,
         "status": statusResponse
     }
 

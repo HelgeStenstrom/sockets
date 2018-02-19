@@ -562,9 +562,6 @@ class OptimusTests(unittest.TestCase):
     def setUp(self):
         self.box = socketInstrument.Optimus()
 
-    def testCreation(self):
-        pass
-
     def test_that_status_returns_positions(self):
         (self.box.h, self.box.v, self.box.t, self.box.f) = (11, 12, 13, 14)
         expectedStatus = "11.0, 12.0, 13.0, 14.0"

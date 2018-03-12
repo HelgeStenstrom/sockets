@@ -762,10 +762,10 @@ class Optimus(SocketInstrument):
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
         "en re": "vad den matchar",
         "mv_to_zero": zeroResponse,
-        "move_h_to [-]?\d+(\.\d+)?": xToResponse,
-        "move_v_to [-]?\d+(\.\d+)?": yToResponse,
-        "move_t_to [-]?\d+(\.\d+)?": phiToResponse,
-        "move_f_to [-]?\d+(\.\d+)?": thetaToResponse,
+        "move_x_to [-]?\d+(\.\d+)?": xToResponse,
+        "move_y_to [-]?\d+(\.\d+)?": yToResponse,
+        "rotate_phi_to [-]?\d+(\.\d+)?": phiToResponse,
+        "rotate_theta_to [-]?\d+(\.\d+)?": thetaToResponse,
         "\*IDN\?": Idn_response,
         "status": statusResponse
     }

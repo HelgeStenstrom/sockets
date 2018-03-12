@@ -584,25 +584,25 @@ class OptimusTests(unittest.TestCase):
 
     # TODO: Update commands to rotate_phi, rotate_theta, move_x, move_y
 
-    def test_that_move_h_moves(self):
-        self.box.responseFunction("move_h_to -12.3")
-        self.assertEqual(self.box.x, -12.3)
+    def test_that_move_x_moves(self):
+        self.box.responseFunction("move_x_to -12.3")
+        self.assertEqual(-12.3, self.box.x)
 
-    def test_that_move_v_moves(self):
-        self.box.responseFunction("move_v_to 22")
-        self.assertEqual(self.box.y, 22)
+    def test_that_move_y_moves(self):
+        self.box.responseFunction("move_y_to 22")
+        self.assertEqual(22, self.box.y)
 
-    def test_that_move_t_moves(self):
-        self.box.responseFunction("move_t_to 33")
-        self.assertEqual(self.box.phi, 33)
+    def test_that_rotate_phi_rotates(self):
+        self.box.responseFunction("rotate_phi_to 33")
+        self.assertEqual(33, self.box.phi)
 
-    def test_that_move_f_moves(self):
-        self.box.responseFunction("move_f_to 44")
-        self.assertEqual(self.box.theta, 44)
+    def test_that_rotate_theta_rotates(self):
+        self.box.responseFunction("rotate_theta_to 44")
+        self.assertEqual(44, self.box.theta)
 
     def test_that_bad_commands_get_nack(self):
         response = self.box.responseFunction("bad commmand")
-        self.assertEqual(response, "nack")
+        self.assertEqual("nack", response)
 
 
 class rotary_Functions_tests(unittest.TestCase):

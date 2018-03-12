@@ -692,7 +692,9 @@ class Optimus(SocketInstrument):
 
     def __init__(self):
         self.x, self.y, self.phi, self.theta = (None, None, None, None)
-        self.xStatus, self.yStatus, self.phiStatus, self.thetaStatus = (None, None, None, None)
+        self.xStatus, self.yStatus, self.phiStatus, self.thetaStatus = (0, 0, 0, 0)
+        self.sensorPower = 0
+        self.motorPower = 0
         self.command = None
         self.vendor = "Ericsson"
         self.model = "Optimus"
@@ -722,7 +724,9 @@ class Optimus(SocketInstrument):
         return self.badCommand()
 
     def statusResponse(self):
-        return "%.1f, %.1f, %.1f, %.1f" % (self.x, self.y, self.phi, self.theta)
+        return "%d, %d, %.1f (%d), %.1f (%d), %.1f (%d), %.1f (%d)" % (self.sensorPower, self.motorPower,
+                                              self.x, self.xStatus, self.y, self.yStatus,
+                                              self.phi, self.phiStatus, self.theta, self.thetaStatus)
 
     def zeroResponse(self):
         # TODO: Remove, not present in Optimus.

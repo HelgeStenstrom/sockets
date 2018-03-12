@@ -567,7 +567,8 @@ class OptimusTests(unittest.TestCase):
 
     def test_that_status_returns_positions(self):
         (self.box.x, self.box.y, self.box.phi, self.box.theta) = (11, 12, 13, 14)
-        expectedStatus = "11.0, 12.0, 13.0, 14.0"
+        # TODO: Check only the interesting parts, not the whole string.
+        expectedStatus = "0, 0, 11.0 (0), 12.0 (0), 13.0 (0), 14.0 (0)"
         response = self.box.responseFunction("status")
         self.assertEqual(expectedStatus, response)
 
@@ -580,7 +581,7 @@ class OptimusTests(unittest.TestCase):
     def test_that_zero_cmd_sets_zero(self):
         self.box.responseFunction("mv_to_zero")
         response = self.box.responseFunction("status")
-        self.assertEqual(response, "0.0, 0.0, 0.0, 0.0")
+        self.assertEqual(response, "0, 0, 0.0 (0), 0.0 (0), 0.0 (0), 0.0 (0)")
 
     # TODO: Update commands to rotate_phi, rotate_theta, move_x, move_y
 

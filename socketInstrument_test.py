@@ -562,15 +562,18 @@ class OptimusTests(unittest.TestCase):
     def setUp(self):
         self.box = socketInstrument.Optimus()
 
+    # TODO: Update to status format "sensorPower, motorPower, x (xStatus), y (yStatus), phi (phiStatus), theta (thetaStatus)"
+    # "7, 8, 12.23 (11), 22.12 (22), 32.12 (33), 42.2 (44)"
+
     def test_that_status_returns_positions(self):
-        (self.box.h, self.box.v, self.box.t, self.box.f) = (11, 12, 13, 14)
+        (self.box.x, self.box.y, self.box.phi, self.box.theta) = (11, 12, 13, 14)
         expectedStatus = "11.0, 12.0, 13.0, 14.0"
         response = self.box.responseFunction("status")
         self.assertEqual(expectedStatus, response)
 
     def test_that_zero_cmd_sets_zero_internally(self):
         self.box.responseFunction("mv_to_zero")
-        self.assertEqual((self.box.h, self.box.v, self.box.t, self.box.f),
+        self.assertEqual((self.box.x, self.box.y, self.box.phi, self.box.theta),
                          (0, 0, 0, 0))
 
 
@@ -579,21 +582,23 @@ class OptimusTests(unittest.TestCase):
         response = self.box.responseFunction("status")
         self.assertEqual(response, "0.0, 0.0, 0.0, 0.0")
 
+    # TODO: Update commands to rotate_phi, rotate_theta, move_x, move_y
+
     def test_that_move_h_moves(self):
         self.box.responseFunction("move_h_to -12.3")
-        self.assertEqual(self.box.h, -12.3)
+        self.assertEqual(self.box.x, -12.3)
 
     def test_that_move_v_moves(self):
         self.box.responseFunction("move_v_to 22")
-        self.assertEqual(self.box.v, 22)
+        self.assertEqual(self.box.y, 22)
 
     def test_that_move_t_moves(self):
         self.box.responseFunction("move_t_to 33")
-        self.assertEqual(self.box.t, 33)
+        self.assertEqual(self.box.phi, 33)
 
     def test_that_move_f_moves(self):
         self.box.responseFunction("move_f_to 44")
-        self.assertEqual(self.box.f, 44)
+        self.assertEqual(self.box.theta, 44)
 
     def test_that_bad_commands_get_nack(self):
         response = self.box.responseFunction("bad commmand")

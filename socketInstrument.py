@@ -691,7 +691,8 @@ class MaturoNCD(SocketInstrument):
 class Optimus(SocketInstrument):
 
     def __init__(self):
-        self.h, self.v, self.t, self.f = (None, None, None, None)
+        self.x, self.y, self.phi, self.theta = (None, None, None, None)
+        self.xStatus, self.yStatus, self.phiStatus, self.thetaStatus = (None, None, None, None)
         self.command = None
         self.vendor = "Ericsson"
         self.model = "Optimus"
@@ -721,27 +722,28 @@ class Optimus(SocketInstrument):
         return self.badCommand()
 
     def statusResponse(self):
-        return "%.1f, %.1f, %.1f, %.1f" % (self.h, self.v, self.t, self.f)
+        return "%.1f, %.1f, %.1f, %.1f" % (self.x, self.y, self.phi, self.theta)
 
     def zeroResponse(self):
-        self.h, self.v, self.t, self.f = (0, 0, 0, 0)
+        # TODO: Remove, not present in Optimus.
+        self.x, self.y, self.phi, self.theta = (0, 0, 0, 0)
         return "ack"
 
-    def hToResponse(self):
-        self.h = self.numberFromCommand(self.command)
-        return "ack"
+    def xToResponse(self):
+        self.x = self.numberFromCommand(self.command)
+        return "ok"
 
-    def vToResponse(self):
-        self.v = self.numberFromCommand(self.command)
-        return "ack"
+    def yToResponse(self):
+        self.y = self.numberFromCommand(self.command)
+        return "ok"
 
-    def tToResponse(self):
-        self.t = self.numberFromCommand(self.command)
-        return "ack"
+    def phiToResponse(self):
+        self.phi = self.numberFromCommand(self.command)
+        return "ok"
 
-    def fToResponse(self):
-        self.f = self.numberFromCommand(self.command)
-        return "ack"
+    def thetaToResponse(self):
+        self.theta = self.numberFromCommand(self.command)
+        return "ok"
 
     @staticmethod
     def badCommand():
@@ -760,10 +762,10 @@ class Optimus(SocketInstrument):
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
         "en re": "vad den matchar",
         "mv_to_zero": zeroResponse,
-        "move_h_to [-]?\d+(\.\d+)?": hToResponse,
-        "move_v_to [-]?\d+(\.\d+)?": vToResponse,
-        "move_t_to [-]?\d+(\.\d+)?": tToResponse,
-        "move_f_to [-]?\d+(\.\d+)?": fToResponse,
+        "move_h_to [-]?\d+(\.\d+)?": xToResponse,
+        "move_v_to [-]?\d+(\.\d+)?": yToResponse,
+        "move_t_to [-]?\d+(\.\d+)?": phiToResponse,
+        "move_f_to [-]?\d+(\.\d+)?": thetaToResponse,
         "\*IDN\?": Idn_response,
         "status": statusResponse
     }

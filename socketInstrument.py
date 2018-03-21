@@ -74,13 +74,17 @@ class SocketInstrument(metaclass=ABCMeta):
                     try:
                         receivedCommand = data.decode('utf-8')
                     except UnicodeDecodeError:
-                        break
+                        print("UnicodeDecodeError")
+                        continue
                     receivedText = receivedCommand.strip()
                     # assert '\r' not in receivedText
-                    print("Received: '%s'" % prettify(receivedText))
                     if not data:
-                        print("Received empty command")
-                        break
+                        #print("Received empty command")
+                        print(".", end='', flush=True)
+                        time.sleep(0.1) # Sleep for 100 ms before continuing
+                        # TODO: See if there is a better way to wait for commands without choking the CPU.
+                        continue
+                    print("Received: '%s'" % prettify(receivedText))
                     r = self.responseFunction(data.decode('utf-8'))
                     response = bytes(r + '\r\n', 'utf-8')
 
@@ -89,8 +93,13 @@ class SocketInstrument(metaclass=ABCMeta):
                     if r:
                         print("Sent:     '%s' (length: %d)" % (r, len(response)))
                         conn.sendall(response)
+                print ("Exited 'while True:' loop")   # Vi kommer aldrig hit!
+            print ("Exited 'with conn:' loop")        # Vi kommer aldrig hit heller!
 
         print("Socket is shut down or closed. Please restart.")
+        # TODO BUG: När jag bryter en session i telnet (med close), kan jag inte starta en ny utan att starta om socketInstrument.py.
+        # Innersta loopen (while True) fortsätter, men får inget data, även om man har öppnat en ny session med telnet.
+        # Idé: Stoppa in all setup i loopen. Mot det talar att jag normalt behöver starta servern innan klienten startas.
 
 
 class PaRsBBA150(SocketInstrument):

@@ -30,7 +30,6 @@ import math
 
 
 class Instrument:
-    # TODO: hitta på unit test för det här. Just nu är idéerna ganska vaga.
     # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
     # och för socket eller annat transportlager, inte ens i en basklass.
     # Istället ska transporter och/eller konkret instrument läggas till
@@ -66,35 +65,35 @@ class SocketInstrument(metaclass=ABCMeta):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST, PORT))
             s.listen(1)
-            conn, addr = s.accept()
-            with conn:
+            while True:
+                conn, addr = s.accept()
                 print('Connected by', addr, "\n")
-                while True:
-                    data = conn.recv(1024)
-                    try:
-                        receivedCommand = data.decode('utf-8')
-                    except UnicodeDecodeError:
-                        print("UnicodeDecodeError")
-                        continue
-                    receivedText = receivedCommand.strip()
-                    # assert '\r' not in receivedText
-                    if not data:
-                        #print("Received empty command")
-                        print(".", end='', flush=True)
-                        time.sleep(0.1) # Sleep for 100 ms before continuing
-                        # TODO: See if there is a better way to wait for commands without choking the CPU.
-                        continue
-                    print("Received: '%s'" % prettify(receivedText))
-                    r = self.responseFunction(data.decode('utf-8'))
-                    response = bytes(r + '\r\n', 'utf-8')
+                with conn:
+                    while True:
+                        #while True:
+                        data = conn.recv(1024)
+                        try:
+                            receivedCommand = data.decode('utf-8')
+                        except UnicodeDecodeError:
+                            print("UnicodeDecodeError")
+                            continue
+                        receivedText = receivedCommand.strip()
+                        if not data:
+                            #print("Received empty command")
+                            print(".", end='', flush=True)
+                            time.sleep(0.1) # Sleep for 100 ms before continuing
+                            # TODO: See if there is a better way to wait for commands without choking the CPU.
+                            break
+                        print("Received: '%s'" % prettify(receivedText))
+                        r = self.responseFunction(data.decode('utf-8'))
+                        response = bytes(r + '\r\n', 'utf-8')
 
-                    # TODO: unit test this behavior, which is new. Only send a response if there is one.
-                    # Don't send empty responses.
-                    if r:
-                        print("Sent:     '%s' (length: %d)" % (r, len(response)))
-                        conn.sendall(response)
-                print ("Exited 'while True:' loop")   # Vi kommer aldrig hit!
-            print ("Exited 'with conn:' loop")        # Vi kommer aldrig hit heller!
+                        # Don't send empty responses.
+                        if r:
+                            print("Sent:     '%s' (length: %d)" % (r, len(response)))
+                            conn.sendall(response)
+                print ("Exited 'with conn'")
+            print ("Exited 'while True:' loop")
 
         print("Socket is shut down or closed. Please restart.")
         # TODO BUG: När jag bryter en session i telnet (med close), kan jag inte starta en ny utan att starta om socketInstrument.py.

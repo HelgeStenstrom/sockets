@@ -28,6 +28,7 @@ from abc import abstractmethod, ABCMeta
 import time
 import math
 
+# TODO: Skapa Responder-klass, och flytta instrument-specifika saker dit.
 
 class Instrument:
     # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
@@ -90,7 +91,9 @@ class SocketInstrument(metaclass=ABCMeta):
 
                         # Don't send empty responses.
                         if r:
-                            print("Sent:     '%s' (length: %d)" % (r, len(response)))
+                            # TODO: Don't print embedded CR characters on the same lime as the length info.
+                            print("Sent:     '%s' (length: %d)" % (r.strip(), len(response)))
+                            print
                             conn.sendall(response)
                 print ("Exited 'with conn'")
             print ("Exited 'while True:' loop")
@@ -195,15 +198,15 @@ class PaEmpower(SocketInstrument):
         return "Default Empower response value"
 
 
-class votschBySocket(SocketInstrument):
+class votschBase(SocketInstrument):
     def __init__(self):
         super().__init__()
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
-        self.temp = 27.1
+        self.temperature = 27.1
         self.CcType = 'Vc'
 
-    def setTempActual(self, temp):
-        self.temp = temp
+    def setTempActual(self, temperature):
+        self.temperature = temperature
 
     @staticmethod
     def format(x):
@@ -216,15 +219,39 @@ class votschBySocket(SocketInstrument):
             # Vt 3 7060: n = 14
             # Vc 3 7060: n = 12
             n = {'Vc': 12, 'Vt': 14}[self.CcType]
-            response = self.format(self.temp) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
+            response = self.format(self.temperature) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
             return response
         elif command.startswith("$01?"):
             return "ASCII description of the protocol"
         elif command.startswith("$01E"):
-            return ""
+            return self.setParameters(command)
+
+        elif command.startswith("$01U"):
+            return self.setSlope(command)
+            return "0"
+
         else:
             return "'" + command + "' is an unknown command."
 
+    def setParameters(self, command):
+        return ""
+
+    def setSlope(self, command):
+        return "0"
+
+
+class Vc37060(votschBase):
+
+    def __init__(self):
+        "Initialize a Vc3 7060 chamber object"
+        super().__init__()
+        self.CcType = 'Vc'
+
+    def setSlope(self, command):
+        'Interpret act on $01U command'
+        # TODO: Write unit tests
+        # TODO: Implement this properly
+        return super().setSlope(command)
 
 class RotaryDiscBySocket(SocketInstrument):
 
@@ -808,7 +835,7 @@ def instrumentTypeArgument():
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
     if args.InstrumentType in ['Vc', 'Vt']:
-        attachedInstrument = votschBySocket()
+        attachedInstrument = votschBase()
         attachedInstrument.CcType = args.InstrumentType
 
     elif args.InstrumentType in ['RotaryDisc']:

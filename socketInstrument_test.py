@@ -688,7 +688,7 @@ class AntennaStandTests(unittest.TestCase):
 class votsch_response_Tests(unittest.TestCase):
 
     def setUp(self):
-        self.v = socketInstrument.votschBySocket()
+        self.v = socketInstrument.votschBase()
 
     def test_most_parts_of_a_query(self):
         command = "$01I"

@@ -8,3 +8,6 @@ __pycache__
 .DS_Store
 # DS_Store är filer som OS-X skapar.
 
+# Mapp som skapades av Python 3.6 i PyCharm
+venv/
+

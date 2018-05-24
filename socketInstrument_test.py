@@ -143,6 +143,11 @@ class votsch_response_Tests(unittest.TestCase):
         # TODO: check what the actual response of a Vötsch is, and test for that instead.
         self.assertTrue(response.startswith("ASCII"))
 
+class ABBaseDemo_Tests(unittest.TestCase):
+    def test_factory(self):
+        a, b = socketInstrument.factoryMethod()
+        self.assertIsInstance(a, socketInstrument.A)
+        self.assertIsInstance(b, socketInstrument.Base)
 
 if __name__ == '__main__':
     unittest.main()

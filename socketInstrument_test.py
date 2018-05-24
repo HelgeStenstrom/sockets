@@ -829,6 +829,16 @@ class vc3_Tests(unittest.TestCase):
         self.assertEqual("0072.1", parts[3])
         self.assertEqual("0068.9", parts[4], "fanspeed")
 
+        self.assertEqual(32*'0', lastPart)
+
+    def test_set_read_roundtrip(self):
+        #TODO: Set nominal values and read them back
+        self.fail("TODO: Set nominal values and read them back")
+
+    def test_positive_temp_slope(self):
+        # TODO: ramping of temperature
+        self.fail("TODO: ramping of temperature")
+
     # ---------------- Helper methods -----------------
     # -------------- Test helper methods -------------
 

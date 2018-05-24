@@ -725,6 +725,94 @@ class votsch_response_Tests(unittest.TestCase):
         # TODO: check what the actual response of a Vötsch is, and test for that instead.
         self.assertTrue(response.startswith("ASCII"))
 
+class vc3_Tests(unittest.TestCase):
+    def setUp(self):
+        self.v = socketInstrument.Vc37060()
+
+    def test_nominal_temp_is_undefined_at_creation(self):
+        self.assertEqual(None, self.v.nominalTemp)
+
+    def test_nominal_humidity_is_undefined_at_creation(self):
+        self.assertEqual(None, self.v.nominalHumidity)
+
+    def test_command_string_finds_E_command(self):
+        # Setup
+        cmd = "$01E 0023.1 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+
+        # Exercise
+        self.v.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual("$01E", self.v.command)
+
+    def test_command_string_finds_I_command(self):
+        # Setup
+        cmd = "$01I"
+
+        # Exercise
+        self.v.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual("$01I", self.v.command)
+
+    def test_set_Nominal_Temp(self):
+        # Setup
+        cmd = "$01E 0023.1 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+
+        # Exercise
+        self.v.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual(23.1, self.v.nominalTemp)
+
+    def test_set_Nominal_Humidity(self):
+        # Setup
+        cmd = "$01E 0023.1 0087.1 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+
+        # Exercise
+        self.v.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual(87.1, self.v.nominalHumidity)
+
+    def test_set_Fan_speed(self):
+        # Setup
+        cmd = "$01E 0023.1 0087.1 0080.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+
+        # Exercise
+        self.v.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual(80, self.v.fanSpeed)
+
+    def test_BitsAreCopied(self):
+        # Setup
+        cmd = "$01E 0023.1 0087.1 0080.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+
+        # Exercise
+        self.v.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual(32*"0", self.v.bits)
+
+    # -------------- Test helper methods -------------
+
+    def test_help_split_I_command(self):
+        self.fail("Test not done")
+
+    def test_help_form_decimals(self):
+        # Setup
+        # Exercise & Verify
+        self.assertEqual("0023.1", self.decimals(23.1))
+        self.assertEqual("-012.5", self.decimals(-12.5))
+
+
+    # ---------------- Helper methods -----------------
+
+    def decimals(self, param):
+        return f'{param:06.1f}'
+
+
 
 if __name__ == '__main__':
     unittest.main()

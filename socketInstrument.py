@@ -50,6 +50,7 @@ class Instrument:
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        self.responseEOL = "\r"
 
     @abstractmethod
     def responseFunction(self, command):
@@ -87,7 +88,8 @@ class SocketInstrument(metaclass=ABCMeta):
                             break
                         print("Received: '%s'" % prettify(receivedText))
                         r = self.responseFunction(data.decode('utf-8'))
-                        response = bytes(r + '\r\n', 'utf-8')
+                        response = bytes(r + self.responseEOL, 'utf-8') # At least Vötsch doesn't send LF after response string.
+                        # TODO: Use a configurable post-response string that can be overridden.
 
                         # Don't send empty responses.
                         if r:
@@ -201,6 +203,7 @@ class PaEmpower(SocketInstrument):
 class votschBase(SocketInstrument):
     def __init__(self):
         super().__init__()
+        self.command = None
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         self.temperature = 27.1
         self.CcType = 'Vc'
@@ -214,24 +217,31 @@ class votschBase(SocketInstrument):
 
     def responseFunction(self, command):
         command = command.strip()
-        if command.startswith("$01I"):
-            # Depending on Vötsch model, the format is different.
-            # Vt 3 7060: n = 14
-            # Vc 3 7060: n = 12
-            n = {'Vc': 12, 'Vt': 14}[self.CcType]
-            response = self.format(self.temperature) + "0019.8 " + n * "0000.1 " + 32 * "0" + "\r"
-            return response
-        elif command.startswith("$01?"):
+        parts = command.split(" ")
+        cmd = parts[0]
+        self.command = cmd
+        if cmd == "$01I":
+            return self.getActualValues()
+        elif cmd == "$01?":
             return "ASCII description of the protocol"
-        elif command.startswith("$01E"):
-            return self.setParameters(command)
+        elif cmd == "$01E":
+            return self.setParameters(parts)
 
-        elif command.startswith("$01U"):
-            return self.setSlope(command)
+        elif cmd == "$01U":
+            return self.setSlope(parts)
             return "0"
 
         else:
             return "'" + command + "' is an unknown command."
+
+    def getActualValues(self):
+        # Depending on Vötsch model, the format is different.
+        # Vt 3 7060: n = 14
+        # Vc 3 7060: n = 12
+        n = {'Vc': 12, 'Vt': 14}[self.CcType]
+        response = self.format(
+            self.temperature) + "0019.8 " + n * "0000.1 " + 32 * "0"  # The calling function theSocket adds + "\r"
+        return response
 
     def setParameters(self, command):
         return ""
@@ -245,6 +255,9 @@ class Vc37060(votschBase):
     def __init__(self):
         "Initialize a Vc3 7060 chamber object"
         super().__init__()
+        self.command = None
+        self.nominalHumidity = None
+        self.nominalTemp = None
         self.CcType = 'Vc'
 
     def setSlope(self, command):
@@ -252,6 +265,22 @@ class Vc37060(votschBase):
         # TODO: Write unit tests
         # TODO: Implement this properly
         return super().setSlope(command)
+
+    def setParameters(self, parts):
+        self.command = parts[0]
+
+        self.nominalTemp = float(parts[1])
+        self.nominalHumidity = float(parts[2])
+        self.fanSpeed = float(parts[3])
+        # four unused parts
+        float(parts[4])
+        float(parts[5])
+        float(parts[6])
+        float(parts[7])
+        self.bits = parts[8]
+
+    #if command == "$01I":
+
 
 class RotaryDiscBySocket(SocketInstrument):
 
@@ -831,12 +860,15 @@ def main():
 def instrumentTypeArgument():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
-                        choices=['Vc', 'Vt', 'RotaryDisc', 'NCD', 'BBA150', 'Empower', 'Optimus'])
+                        choices=['Vc', 'Vt', 'Vc37060', 'RotaryDisc', 'NCD', 'BBA150', 'Empower', 'Optimus'])
     parser.add_argument('--offset', help="How far the used target pos is from the requested one.", type=float)
     args = parser.parse_args()
     if args.InstrumentType in ['Vc', 'Vt']:
         attachedInstrument = votschBase()
         attachedInstrument.CcType = args.InstrumentType
+
+    elif args.InstrumentType == 'Vc37060':
+        attachedInstrument = Vc37060()
 
     elif args.InstrumentType in ['RotaryDisc']:
         attachedInstrument = RotaryDiscBySocket()

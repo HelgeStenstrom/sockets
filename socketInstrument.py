@@ -205,14 +205,14 @@ class votschBase(SocketInstrument):
         super().__init__()
         self.command = None
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
-        self.temperature = 27.1
+        self.actualTemperature = 27.1
         self.CcType = 'Vc'
 
     def setTempActual(self, temperature):
-        self.temperature = temperature
+        self.actualTemperature = temperature
 
     @staticmethod
-    def format(x):
+    def decimal(x):
         return "%06.1f " % x
 
     def responseFunction(self, command):
@@ -239,8 +239,8 @@ class votschBase(SocketInstrument):
         # Vt 3 7060: n = 14
         # Vc 3 7060: n = 12
         n = {'Vc': 12, 'Vt': 14}[self.CcType]
-        response = self.format(
-            self.temperature) + "0019.8 " + n * "0000.1 " + 32 * "0"  # The calling function theSocket adds + "\r"
+        response = self.decimal(
+            self.actualTemperature) + "0019.8 " + n * "0000.1 " + 32 * "0"  # The calling function theSocket adds + "\r"
         return response
 
     def setParameters(self, command):
@@ -255,6 +255,7 @@ class Vc37060(votschBase):
     def __init__(self):
         "Initialize a Vc3 7060 chamber object"
         super().__init__()
+        self.actualHumidity = None
         self.command = None
         self.nominalHumidity = None
         self.nominalTemp = None
@@ -265,6 +266,14 @@ class Vc37060(votschBase):
         # TODO: Write unit tests
         # TODO: Implement this properly
         return super().setSlope(command)
+
+    def getActualValues(self):
+        pp = [self.nominalTemp, self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed ] + 9*[0]
+        values = [self.decimal(part) for part in pp]
+        response = " ".join(values) + " " + 32 * "0"
+        return response
+
+
 
     def setParameters(self, parts):
         self.command = parts[0]

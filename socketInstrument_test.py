@@ -728,12 +728,12 @@ class votsch_response_Tests(unittest.TestCase):
 class vc3_Tests(unittest.TestCase):
     def setUp(self):
         self.v = socketInstrument.Vc37060()
+        self.v.nominalTemp = 0
+        self.v.actualTemperature = 0
+        self.v.nominalHumidity = 0
+        self.v.actualHumidity = 0
+        self.v.fanSpeed = 0
 
-    def test_nominal_temp_is_undefined_at_creation(self):
-        self.assertEqual(None, self.v.nominalTemp)
-
-    def test_nominal_humidity_is_undefined_at_creation(self):
-        self.assertEqual(None, self.v.nominalHumidity)
 
     def test_command_string_finds_E_command(self):
         # Setup
@@ -795,23 +795,44 @@ class vc3_Tests(unittest.TestCase):
         # Verify
         self.assertEqual(32*"0", self.v.bits)
 
-    # -------------- Test helper methods -------------
-
-    def test_help_split_I_command(self):
-        self.fail("Test not done")
-
-    def test_help_form_decimals(self):
+    def test_parts_of_E(self):
         # Setup
-        # Exercise & Verify
-        self.assertEqual("0023.1", self.decimals(23.1))
-        self.assertEqual("-012.5", self.decimals(-12.5))
 
+        # Execute
+        response = self.v.responseFunction("$01I")
+        parts = response.split()
+        lastPart = parts[-1]
+
+        # Verify
+        # Number of values is 14 + 1
+        self.assertEqual(15, len(parts))
+        # Last value is a 32-bit binary number
+        self.assertEqual(32, len(lastPart))
+
+    def test_temp_humid_fan_of_E(self):
+        # Setup
+        self.v.nominalTemp =-12.3
+        self.v.actualTemperature = 14.6
+        self.v.nominalHumidity = 73.4
+        self.v.actualHumidity = 72.1
+        self.v.fanSpeed = 68.9
+
+        # Execute
+        response = self.v.responseFunction("$01I")
+        parts = response.split()
+        lastPart = parts[-1]
+
+        # Verify
+        self.assertEqual("-012.3", parts[0])
+        self.assertEqual("0014.6", parts[1])
+        self.assertEqual("0073.4", parts[2])
+        self.assertEqual("0072.1", parts[3])
+        self.assertEqual("0068.9", parts[4], "fanspeed")
 
     # ---------------- Helper methods -----------------
+    # -------------- Test helper methods -------------
 
-    def decimals(self, param):
-        return f'{param:06.1f}'
-
+    # No helpers at this time
 
 
 if __name__ == '__main__':

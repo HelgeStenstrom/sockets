@@ -28,7 +28,7 @@ from abc import abstractmethod, ABCMeta
 import time
 import math
 
-# TODO: Skapa Responder-klass, och flytta instrument-specifika saker dit.
+# TODO: Skapa Behavior-klass, och flytta instrument-specifika saker dit.
 
 class Instrument:
     # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
@@ -101,9 +101,6 @@ class SocketInstrument(metaclass=ABCMeta):
             print ("Exited 'while True:' loop")
 
         print("Socket is shut down or closed. Please restart.")
-        # TODO BUG: När jag bryter en session i telnet (med close), kan jag inte starta en ny utan att starta om socketInstrument.py.
-        # Innersta loopen (while True) fortsätter, men får inget data, även om man har öppnat en ny session med telnet.
-        # Idé: Stoppa in all setup i loopen. Mot det talar att jag normalt behöver starta servern innan klienten startas.
 
 
 class PaRsBBA150(SocketInstrument):

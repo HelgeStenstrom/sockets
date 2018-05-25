@@ -109,10 +109,12 @@ class vc3_Tests(unittest.TestCase):
 
         self.assertEqual(32*'0', lastPart)
 
+    @unittest.skip("Test not done.")
     def test_set_read_roundtrip(self):
         #TODO: Set nominal values and read them back
         self.fail("TODO: Set nominal values and read them back")
 
+    @unittest.skip("Test not done.")
     def test_positive_temp_slope(self):
         # TODO: ramping of temperature
         self.fail("TODO: ramping of temperature")

@@ -222,7 +222,7 @@ class votschBase(SocketInstrument):
 
     @staticmethod
     def decimal(x):
-        return "%06.1f " % x
+        return "%06.1f" % x
 
     def responseFunction(self, command):
         command = command.strip()
@@ -264,10 +264,12 @@ class Vc37060(votschBase):
     def __init__(self):
         "Initialize a Vc3 7060 chamber object"
         super().__init__()
-        self.actualHumidity = None
+        self.nominalTemp = 0
+        self.actualTemperature = 0
+        self.nominalHumidity = 0
+        self.actualHumidity = 0
+        self.fanSpeed = 0
         self.command = None
-        self.nominalHumidity = None
-        self.nominalTemp = None
         self.CcType = 'Vc'
 
     def setSlope(self, command):
@@ -288,7 +290,9 @@ class Vc37060(votschBase):
         self.command = parts[0]
 
         self.nominalTemp = float(parts[1])
+        self.actualTemperature = self.nominalTemp + 3
         self.nominalHumidity = float(parts[2])
+        self.actualHumidity = self.nominalHumidity + 5
         self.fanSpeed = float(parts[3])
         # four unused parts
         float(parts[4])
@@ -296,6 +300,8 @@ class Vc37060(votschBase):
         float(parts[6])
         float(parts[7])
         self.bits = parts[8]
+
+        return "0"
 
     #if command == "$01I":
 

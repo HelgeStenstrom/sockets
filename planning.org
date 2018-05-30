@@ -1,0 +1,31 @@
+* File and class structure
+- Surajits filer
+  + SocketInstrument.py
+    - Instrument
+    - SocketInstrument
+  + firstFile.py
+    - PaEmpower(SocketInstrument)
+    - Optimus(SocketInstrument)
+    - from SocketInstrument import SocketInstrument
+  + secondFile.py
+    - votschBase(SocketIntrument)
+    - Vc37060(votschBase)
+    - from SocketInstrument import SocketInstrument
+  + mainEntry.py
+    - from secondFile import votschBase
+      from secondFile import Vc37060
+      from firstFile import RotaryDiscBySocket, MaturoNCD, PaRsBBA150,
+      PaEmpower, Optimus
+
+
+
+- Mitt projekt
+  + socketInstrument.py
+    - Base
+    - A(Base)
+    - B(Base)
+    - Instrument
+    - SocketInstrument
+    - VotschBase(SocketInstrument)
+    - Vc37060(VotschBase)
+    - PaEmpower(SocketInstrument)

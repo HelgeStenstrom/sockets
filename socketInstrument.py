@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Helge Stenström 2016-2017
+# Helge Stenström 2016, 2017, 2018
 
-# Fungerar i python3.
+# Needs Python3.
 
 # From
 # https://docs.python.org/3/library/socket.html#example
@@ -20,15 +20,9 @@ Implemented instruments:
 - innco GmbH IN3000 RotaryDisc.
 """
 
-import socket
-# import socketserver
 from abc import abstractmethod, ABCMeta
-import time
-
 import Communicator
 
-
-# TODO: Skapa Behavior-klass, och flytta instrument-specifika saker dit.
 
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
@@ -41,9 +35,9 @@ class SocketInstrument(metaclass=ABCMeta):
         pass
 
 
-def toPrintable(unpretty):
+def toPrintable(stringWithControlChars):
     result = ""
-    for char in unpretty:
+    for char in stringWithControlChars:
         if char == '\r':
             result += '<CR>'
         elif char == '\n':

@@ -29,3 +29,11 @@
     - VotschBase(SocketInstrument)
     - Vc37060(VotschBase)
     - PaEmpower(SocketInstrument)
+
+- Mitt projekt efter refactoring
+  + socketMain.py
+  + socketInstrument.py
+  + Amplifier.py
+  + Climate.py
+  + Robotics.py
+

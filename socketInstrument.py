@@ -29,18 +29,6 @@ import math
 
 # TODO: Skapa Behavior-klass, och flytta instrument-specifika saker dit.
 
-class Base:
-    pass
-
-class A(Base):
-    pass
-
-class B(Base):
-    pass
-
-def factoryMethod():
-    return A(), B()
-
 class Instrument:
     # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
     # och för socket eller annat transportlager, inte ens i en basklass.

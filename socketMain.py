@@ -17,9 +17,7 @@ from Robotics import RotaryDiscBySocket, MaturoNCD, Optimus
 
 def main():
     attachedInstrument = instrumentTypeArgument()
-
-    attachedInstrument.theSocket()
-
+    attachedInstrument.communicator.start()
 
 def instrumentTypeArgument():
     ignored = __doc__

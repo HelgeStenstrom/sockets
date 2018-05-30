@@ -46,7 +46,7 @@ class VotschBase(SocketInstrument):
             self.actualTemperature) + " 0019.8 " + n * "0000.1 " + 32 * "0"  # The calling function theSocket adds + "\r"
         return response
 
-    @abstractmethod
+    # @abstractmethod
     def setTargetsCommand(self, command):
         raise NotImplementedError
         # TODO: Implement Vc and Vt as subclasses. Raising an error or marking method as abstract makes class abstract.

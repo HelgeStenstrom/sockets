@@ -1,3 +1,4 @@
+import Amplifier
 import Climate
 import socketInstrument
 import unittest
@@ -72,7 +73,7 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_Empower(self):
         sys.argv = ["", "Empower"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, socketInstrument.PaEmpower)
+        self.assertIsInstance(instrument, Amplifier.PaEmpower)
 
     def test_cmd_line_argument_Optimus(self):
         sys.argv = ["", "Optimus"]

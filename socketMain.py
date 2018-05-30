@@ -10,6 +10,7 @@ Implemented instruments:
 """
 import argparse
 
+from Amplifier import PaRsBBA150, PaEmpower
 from Climate import VotschBase, Vc37060
 from socketInstrument import *
 

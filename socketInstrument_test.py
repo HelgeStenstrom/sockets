@@ -1,5 +1,6 @@
 import Amplifier
 import Climate
+import Robotics
 import socketInstrument
 import unittest
 import sys
@@ -68,7 +69,7 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_RotaryDisc(self):
         sys.argv = ["", "RotaryDisc"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, socketInstrument.RotaryDiscBySocket)
+        self.assertIsInstance(instrument, Robotics.RotaryDiscBySocket)
 
     def test_cmd_line_argument_Empower(self):
         sys.argv = ["", "Empower"]
@@ -78,13 +79,13 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_Optimus(self):
         sys.argv = ["", "Optimus"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, socketInstrument.Optimus)
+        self.assertIsInstance(instrument, Robotics.Optimus)
 
 
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
         command = "LD -123.3 DG NP GO"
-        number = socketInstrument.RotaryDiscBySocket.numberFromInncoCommand(command)
+        number = Robotics.RotaryDiscBySocket.numberFromInncoCommand(command)
         self.assertEqual(number, -123.3)
 
     def test_prettyprinting_nonprints(self):
@@ -96,7 +97,7 @@ class function_Tests(unittest.TestCase):
 
 class AntennaStandTests(unittest.TestCase):
     def setUp(self):
-        self.dev = socketInstrument.AntennaStand("someName")
+        self.dev = Robotics.AntennaStand("someName")
 
     def test_create_one_device(self):
         self.assertEqual(self.dev.name, 'someName')

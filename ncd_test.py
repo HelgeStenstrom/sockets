@@ -1,39 +1,40 @@
 import time
 import unittest
 
+import Robotics
 import socketInstrument
 
 
 class Ncd_Tests(unittest.TestCase):
     def setUp(self):
-        self.rd = socketInstrument.MaturoNCD()
+        self.rd = Robotics.MaturoNCD()
 
     def tearDown(self):
         pass
 
     def test_that_some_simple_commands_get_parsed(self):
-        self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.MaturoNCD.Idn_response)
-        self.assertEqual(self.rd.commandFor("CP  "), socketInstrument.MaturoNCD.CP_response)
-        self.assertEqual(self.rd.commandFor("BU  ; "), socketInstrument.MaturoNCD.BU_Response)
+        self.assertEqual(self.rd.commandFor("*IDN? "), Robotics.MaturoNCD.Idn_response)
+        self.assertEqual(self.rd.commandFor("CP  "), Robotics.MaturoNCD.CP_response)
+        self.assertEqual(self.rd.commandFor("BU  ; "), Robotics.MaturoNCD.BU_Response)
 
     def test_that_parametrized_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("LD -123.4 DG NP GO"),
-                         socketInstrument.MaturoNCD.LD_NP_GO_response, "negative fraction")
+                         Robotics.MaturoNCD.LD_NP_GO_response, "negative fraction")
         self.assertEqual(self.rd.commandFor("LD 12.3 DG NP GO"),
-                         socketInstrument.MaturoNCD.LD_NP_GO_response, "postitive fraction")
+                         Robotics.MaturoNCD.LD_NP_GO_response, "postitive fraction")
         self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
-                         socketInstrument.MaturoNCD.LD_NP_GO_response, "integer argument")
+                         Robotics.MaturoNCD.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 7 SP"),
-                         socketInstrument.MaturoNCD.LD_SP_response, "speed on 1-8 scale")
+                         Robotics.MaturoNCD.LD_SP_response, "speed on 1-8 scale")
         self.assertEqual(self.rd.commandFor("SP"),
-                         socketInstrument.MaturoNCD.SP_response, "Returned speed")
+                         Robotics.MaturoNCD.SP_response, "Returned speed")
         self.assertEqual(self.rd.commandFor("LD 1 DV"),
-                         socketInstrument.MaturoNCD.LD_dev_DV_response, "Select current device")
+                         Robotics.MaturoNCD.LD_dev_DV_response, "Select current device")
 
 
 class Ncd_response_FrontDoor_Tests(unittest.TestCase):
     def setUp(self):
-        self.ncd = socketInstrument.MaturoNCD()
+        self.ncd = Robotics.MaturoNCD()
         self.ncd.responseFunction("LD 1 DV")
 
     def tearDown(self):
@@ -97,8 +98,8 @@ class Ncd_response_FrontDoor_Tests(unittest.TestCase):
 
 class Ncd_response_BackDoor_Tests(unittest.TestCase):
     def setUp(self):
-        self.ncd = socketInstrument.MaturoNCD()
-        rotDevices = [dev for dev in self.ncd.attachedDevices if isinstance(dev, socketInstrument.OneRotaryDisc)]
+        self.ncd = Robotics.MaturoNCD()
+        rotDevices = [dev for dev in self.ncd.attachedDevices if isinstance(dev, Robotics.OneRotaryDisc)]
         self.ncd.currentDevice = rotDevices[0]
 
     def tearDown(self):
@@ -214,9 +215,9 @@ class Ncd_response_BackDoor_Tests(unittest.TestCase):
 
 class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def setUp(self):
-        self.ncd = socketInstrument.MaturoNCD()
+        self.ncd = Robotics.MaturoNCD()
         self.ncd.currentDevice = self.ncd.deviceByName("0")
-        self.assertIsInstance(self.ncd.currentDevice, socketInstrument.AntennaStand)
+        self.assertIsInstance(self.ncd.currentDevice, Robotics.AntennaStand)
 
     def test_polarization_commands(self):
         self.ncd.responseFunction("PV")
@@ -230,7 +231,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def test_sp_command_on_antenna_stand(self):
         antennaStand = self.ncd.deviceByName("0")
         # Precondition
-        self.assertIsInstance(antennaStand, socketInstrument.AntennaStand, "we need an AntennaStand for the test")
+        self.assertIsInstance(antennaStand, Robotics.AntennaStand, "we need an AntennaStand for the test")
 
         self.ncd.currentDevice = antennaStand
         response = self.ncd.responseFunction("SP?")
@@ -239,7 +240,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def test_pol_command_on_rotary_disc(self):
         ttDevice = self.ncd.deviceByName("1")
         # Precondition
-        self.assertIsInstance(ttDevice, socketInstrument.OneRotaryDisc, "we need a OneRotaryDisc for the test")
+        self.assertIsInstance(ttDevice, Robotics.OneRotaryDisc, "we need a OneRotaryDisc for the test")
 
         self.ncd.currentDevice = ttDevice
         response = self.ncd.responseFunction("P?")
@@ -252,7 +253,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
 
 class Ncd_top_level_function_tests(unittest.TestCase):
     def setUp(self):
-        self.rd = socketInstrument.MaturoNCD()
+        self.rd = Robotics.MaturoNCD()
 
     def tearDown(self):
         pass

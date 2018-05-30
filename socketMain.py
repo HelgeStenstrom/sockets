@@ -12,7 +12,8 @@ import argparse
 
 from Amplifier import PaRsBBA150, PaEmpower
 from Climate import VotschBase, Vc37060
-from socketInstrument import *
+from Robotics import RotaryDiscBySocket, MaturoNCD, Optimus
+
 
 def main():
     attachedInstrument = instrumentTypeArgument()

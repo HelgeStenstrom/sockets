@@ -1,13 +1,14 @@
 import time
 import unittest
 
+import Robotics
 import socketInstrument
 
 
 class rotary_Tests(unittest.TestCase):
     # TODO: testa att offset och random fungerar som kommandots argument.
     def setUp(self):
-        self.rd = socketInstrument.RotaryDiscBySocket()
+        self.rd = Robotics.RotaryDiscBySocket()
 
     def tearDown(self):
         pass
@@ -18,24 +19,24 @@ class rotary_Tests(unittest.TestCase):
         self.assertListEqual(names, self.rd.devNamesToAttach)
 
     def test_that_some_simple_commands_get_parsed(self):
-        self.assertEqual(self.rd.commandFor("*IDN? "), socketInstrument.RotaryDiscBySocket.Idn_response)
-        self.assertEqual(self.rd.commandFor("*OPT? "), socketInstrument.RotaryDiscBySocket.OPT_response)
-        self.assertEqual(self.rd.commandFor("CP  "), socketInstrument.RotaryDiscBySocket.CP_response)
-        self.assertEqual(self.rd.commandFor("BU  ; "), socketInstrument.RotaryDiscBySocket.BU_Response)
+        self.assertEqual(self.rd.commandFor("*IDN? "), Robotics.RotaryDiscBySocket.Idn_response)
+        self.assertEqual(self.rd.commandFor("*OPT? "), Robotics.RotaryDiscBySocket.OPT_response)
+        self.assertEqual(self.rd.commandFor("CP  "), Robotics.RotaryDiscBySocket.CP_response)
+        self.assertEqual(self.rd.commandFor("BU  ; "), Robotics.RotaryDiscBySocket.BU_Response)
 
     def test_that_parametrized_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("LD -123.4 DG NP GO"),
-                         socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "negative fraction")
+                         Robotics.RotaryDiscBySocket.LD_NP_GO_response, "negative fraction")
         self.assertEqual(self.rd.commandFor("LD 12.3 DG NP GO"),
-                         socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "postitive fraction")
+                         Robotics.RotaryDiscBySocket.LD_NP_GO_response, "postitive fraction")
         self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
-                         socketInstrument.RotaryDiscBySocket.LD_NP_GO_response, "integer argument")
+                         Robotics.RotaryDiscBySocket.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 12.3 NSP"),
-                         socketInstrument.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
+                         Robotics.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
         self.assertEqual(self.rd.commandFor("NSP"),
-                         socketInstrument.RotaryDiscBySocket.NSP_response, "Returned speed")
+                         Robotics.RotaryDiscBySocket.NSP_response, "Returned speed")
         self.assertEqual(self.rd.commandFor("LD DS2 DV"),
-                         socketInstrument.RotaryDiscBySocket.LD_dev_DV_response, "Select current device")
+                         Robotics.RotaryDiscBySocket.LD_dev_DV_response, "Select current device")
 
     def test_distance_function(self):
         limit = self.rd.farDistance
@@ -45,7 +46,7 @@ class rotary_Tests(unittest.TestCase):
 
 class rotary_response_Tests(unittest.TestCase):
     def setUp(self):
-        self.rd = socketInstrument.RotaryDiscBySocket()
+        self.rd = Robotics.RotaryDiscBySocket()
         # TODO: välj ett device som "current"
 
     def tearDown(self):
@@ -182,7 +183,7 @@ class rotary_response_Tests(unittest.TestCase):
 
 class Rotary_top_level_function_tests(unittest.TestCase):
     def setUp(self):
-        self.rd = socketInstrument.RotaryDiscBySocket()
+        self.rd = Robotics.RotaryDiscBySocket()
 
     def tearDown(self):
         pass
@@ -195,7 +196,7 @@ class Rotary_top_level_function_tests(unittest.TestCase):
 
 class Rotary_command_tests(unittest.TestCase):
     def setUp(self):
-        self.rd = socketInstrument.RotaryDiscBySocket()
+        self.rd = Robotics.RotaryDiscBySocket()
 
     def tearDown(self):
         pass
@@ -213,7 +214,7 @@ class Rotary_command_tests(unittest.TestCase):
 class rotary_Functions_tests(unittest.TestCase):
 
     def setUp(self):
-        self.rd = socketInstrument.RotaryDiscBySocket()
+        self.rd = Robotics.RotaryDiscBySocket()
 
     def tearDown(self):
         pass
@@ -231,7 +232,7 @@ class rotary_Functions_tests(unittest.TestCase):
 
 class OneRotaryDisc_tests(unittest.TestCase):
     def setUp(self):
-        self.dev = socketInstrument.OneRotaryDisc('someName')
+        self.dev = Robotics.OneRotaryDisc('someName')
 
     def tearDown(self):
         pass

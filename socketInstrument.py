@@ -29,23 +29,6 @@ import math
 
 # TODO: Skapa Behavior-klass, och flytta instrument-specifika saker dit.
 
-class Instrument:
-    # Tanken är att klassen inte ska innehålla kod för både specifikt instrument
-    # och för socket eller annat transportlager, inte ens i en basklass.
-    # Istället ska transporter och/eller konkret instrument läggas till
-    # som objektattribut.
-    # Målet är att kunna använda koden som modellerar ett instrument i unit tests,
-    # utan att blanda in transportlagret.
-
-    # Åtminstone med Socket, så är det transportlagret som anropar
-    # instrumentsimulatorn (respons-funktionen), och inte tvärt om.
-    # Därför kan man ersätta transportlagret med ett enklare, och testa att
-    # responsfunktioner blir anropade.
-
-    def __init__(self, transporter):
-        self.transporter = transporter
-
-
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.

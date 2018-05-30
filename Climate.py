@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from socketInstrument import SocketInstrument
 
 
@@ -8,6 +10,7 @@ class VotschBase(SocketInstrument):
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         self.actualTemperature = 27.1
         self.CcType = 'Vc'
+        self.currentWantedTemp = None
 
     def setTempActual(self, temperature):
         self.actualTemperature = temperature
@@ -26,11 +29,10 @@ class VotschBase(SocketInstrument):
         elif cmd == "$01?":
             return self.helpText()
         elif cmd == "$01E":
-            return self.setParameters(parts)
+            return self.setTargetsCommand(parts)
 
         elif cmd == "$01U":
-            return self.setSlope(parts)
-            return "0"
+            return self.setSlopeCommand(parts[1:])
 
         else:
             return "'" + command + "' is an unknown command."
@@ -44,11 +46,17 @@ class VotschBase(SocketInstrument):
             self.actualTemperature) + " 0019.8 " + n * "0000.1 " + 32 * "0"  # The calling function theSocket adds + "\r"
         return response
 
-    def setParameters(self, command):
-        return ""
+    @abstractmethod
+    def setTargetsCommand(self, command):
+        raise NotImplementedError
+        # TODO: Implement Vc and Vt as subclasses. Raising an error or marking method as abstract makes class abstract.
+        #return ""
 
-    def setSlope(self, command):
-        return "0"
+    def setSlopeCommand(self, parameters):
+        if len(parameters) == 4:
+            return "0"
+        else:
+            return ""
 
     def helpText(self):
         return """ASCII description of the protocol
@@ -175,11 +183,6 @@ $01I<CR>
         self.command = None
         self.CcType = 'Vc'
 
-    def setSlope(self, command):
-        'Interpret act on $01U command'
-        # TODO: Write unit tests
-        # TODO: Implement this properly
-        return super().setSlope(command)
 
     def getActualValues(self):
         pp = [self.nominalTemp, self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed ] + 9*[0]
@@ -189,7 +192,7 @@ $01I<CR>
 
 
 
-    def setParameters(self, parts):
+    def setTargetsCommand(self, parts):
         self.command = parts[0]
 
         self.nominalTemp = float(parts[1])
@@ -203,7 +206,6 @@ $01I<CR>
         float(parts[6])
         float(parts[7])
         self.bits = parts[8]
+        self.currentWantedTemp = self.nominalTemp
 
         return "0"
-
-    #if command == "$01I":

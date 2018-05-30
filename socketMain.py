@@ -8,7 +8,9 @@ Implemented instruments:
 - Vötsch climate chamber models Vt 3 7060 and Vc 3 7060.
 - innco GmbH IN3000 RotaryDisc.
 """
+import argparse
 
+from Climate import VotschBase, Vc37060
 from socketInstrument import *
 
 def main():

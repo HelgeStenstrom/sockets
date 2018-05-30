@@ -1,11 +1,12 @@
 import unittest
 
+import Climate
 import socketInstrument
 
 
 class vc3_Tests(unittest.TestCase):
     def setUp(self):
-        self.v = socketInstrument.Vc37060()
+        self.v = Climate.Vc37060()
         self.v.nominalTemp = 0
         self.v.actualTemperature = 0
         self.v.nominalHumidity = 0

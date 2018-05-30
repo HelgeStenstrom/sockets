@@ -1,6 +1,8 @@
+import Climate
 import socketInstrument
 import unittest
 import sys
+import socketMain
 
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
@@ -60,21 +62,21 @@ class main_Tests(unittest.TestCase):
     @unittest.skip("Prints to screen, and I don't want that.")
     def test_that_invalid_arguments_raises_SystemExit_in_function(self):
         sys.argv = ["", "Invalid_argument"]
-        self.assertRaises(SystemExit, socketInstrument.instrumentTypeArgument)
+        self.assertRaises(SystemExit, socketMain.instrumentTypeArgument)
 
     def test_cmd_line_argument_RotaryDisc(self):
         sys.argv = ["", "RotaryDisc"]
-        instrument = socketInstrument.instrumentTypeArgument()
+        instrument = socketMain.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.RotaryDiscBySocket)
 
     def test_cmd_line_argument_Empower(self):
         sys.argv = ["", "Empower"]
-        instrument = socketInstrument.instrumentTypeArgument()
+        instrument = socketMain.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.PaEmpower)
 
     def test_cmd_line_argument_Optimus(self):
         sys.argv = ["", "Optimus"]
-        instrument = socketInstrument.instrumentTypeArgument()
+        instrument = socketMain.instrumentTypeArgument()
         self.assertIsInstance(instrument, socketInstrument.Optimus)
 
 
@@ -106,7 +108,7 @@ class AntennaStandTests(unittest.TestCase):
 class votsch_response_Tests(unittest.TestCase):
 
     def setUp(self):
-        self.v = socketInstrument.VotschBase()
+        self.v = Climate.VotschBase()
 
     def test_most_parts_of_a_query(self):
         command = "$01I"

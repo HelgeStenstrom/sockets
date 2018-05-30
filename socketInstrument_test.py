@@ -11,25 +11,27 @@ import socketMain
 
 @unittest.skip("Skipping tests that print.")
 class Tests_with_print(unittest.TestCase):
+    # TODO: Find out how to test printouts in PyCharm + Python 3.6, both Mac and Windows
     def setUp(self):
         pass
 
     def tearDown(self):
         pass
 
-    @unittest.skip("Vill inte ha utskrifter till konsolen.")
+    # @unittest.skip("Vill inte ha utskrifter till konsolen.")
     def test_that_printouts_can_be_tested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
         print("some error", file=sys.stderr)
         self.assertIn("some error", sys.stderr.getvalue())
 
-    @unittest.skip("Vill inte ha utskrifter till konsolen.")
+    # @unittest.skip("Vill inte ha utskrifter till konsolen.")
     def test_printing(self):
         # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
         # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
-        print("a string to be tested")
-        self.assertIn("a string to be tested", sys.stdout.getvalue())
+        tested = "a string to be tested"
+        print(tested)
+        self.assertIn(tested, sys.stdout.getvalue())
 
 
 class main_Tests(unittest.TestCase):
@@ -48,19 +50,19 @@ class main_Tests(unittest.TestCase):
         # help(sys.stderr)
         pass
 
-    @unittest.skip("Prints to screen, and I don't want that.")
+    # @unittest.skip("Prints to screen, and I don't want that.")
     def test_that_invalid_arguments_raises_SystemExit(self):
 
         sys.argv = ["", "Invalid_argument"]
-        self.assertRaises(SystemExit, socketInstrument.main)
+        self.assertRaises(SystemExit, socketMain.main)
         # Denna metod failar, om den inte får Vt, Vc eller RotaryDisc som argument.
         # Annars så returnerar den aldrig. Den måste ha en separat tråd.
 
         # Test also with a valid offset
         sys.argv = ["", "--offset", "3.3", "Invalid_argument"]
-        self.assertRaises(SystemExit, socketInstrument.main)
+        self.assertRaises(SystemExit, socketMain.main)
 
-    @unittest.skip("Prints to screen, and I don't want that.")
+    # @unittest.skip("Prints to screen, and I don't want that.")
     def test_that_invalid_arguments_raises_SystemExit_in_function(self):
         sys.argv = ["", "Invalid_argument"]
         self.assertRaises(SystemExit, socketMain.instrumentTypeArgument)

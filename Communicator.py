@@ -9,6 +9,7 @@ class Communicator:
     def start(self):
         pass
 
+
 def toPrintable(unpretty):
     result = ""
     for char in unpretty:
@@ -27,7 +28,6 @@ class SocketCommunicator(Communicator):
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         self.responseEOL = "\r"
         self.responseFunction = respFunction
-
 
     def start(self):
         # DONE: se till att avslutning fungerar snyggare, utan felmeddelanden till terminalen
@@ -54,12 +54,13 @@ class SocketCommunicator(Communicator):
                         receivedText = receivedCommand.strip()
                         if not data:
                             print(".", end='', flush=True)
-                            time.sleep(0.1) # Sleep for 100 ms before continuing
+                            time.sleep(0.1)  # Sleep for 100 ms before continuing
                             # TODO: See if there is a better way to wait for commands without choking the CPU.
                             break
                         print("Received: '%s'" % toPrintable(receivedText))
                         r = self.responseFunction(data.decode('utf-8'))
-                        response = bytes(r + self.responseEOL, 'utf-8') # At least Vötsch doesn't send LF after response string.
+                        response = bytes(r + self.responseEOL,
+                                         'utf-8')  # At least Vötsch doesn't send LF after response string.
                         # TODO: Use a configurable post-response string that can be overridden.
 
                         # Don't send empty responses.
@@ -68,7 +69,6 @@ class SocketCommunicator(Communicator):
                             print("Sent:     '%s' (length: %d)" % (r.strip(), len(response)))
                             print()
                             conn.sendall(response)
-                print ("Exited 'with conn'")
-            print ("Exited 'while True:' loop")
+                print("Exited 'with conn'")
 
-        print("Socket is shut down or closed. Please restart.")
+

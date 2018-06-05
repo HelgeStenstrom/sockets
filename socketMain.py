@@ -1,4 +1,3 @@
-
 """
 Mimic an instrument, and let it respond to commands.
 Usually instruments are attached by VISA over GPIB or TRP/IP.
@@ -19,8 +18,8 @@ def main():
     attachedInstrument = instrumentTypeArgument()
     attachedInstrument.communicator.start()
 
+
 def instrumentTypeArgument():
-    ignored = __doc__
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[1])
     parser.add_argument('InstrumentType', help='Type of instrument or Vötsch model',
                         choices=['Vc', 'Vt', 'Vc37060', 'RotaryDisc', 'NCD', 'BBA150', 'Empower', 'Optimus'])

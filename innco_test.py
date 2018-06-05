@@ -2,7 +2,6 @@ import time
 import unittest
 
 import Robotics
-import socketInstrument
 
 
 class rotary_Tests(unittest.TestCase):
@@ -40,8 +39,8 @@ class rotary_Tests(unittest.TestCase):
 
     def test_distance_function(self):
         limit = self.rd.farDistance
-        self.assertTrue(self.rd.isDistant(limit+1))
-        self.assertFalse(self.rd.isDistant(limit-1))
+        self.assertTrue(self.rd.isDistant(limit + 1))
+        self.assertFalse(self.rd.isDistant(limit - 1))
 
 
 class rotary_response_Tests(unittest.TestCase):
@@ -126,7 +125,6 @@ class rotary_response_Tests(unittest.TestCase):
         response = self.rd.responseFunction(cmd)
         self.assertEqual(response, "-123.4")
 
-
     def test_that_the_speed_can_be_set(self):
         # TODO: Förstå och förenkla detta test, och namnen i NCD
         n1, n2 = self.rd.devNamesToAttach[0:2]
@@ -135,6 +133,7 @@ class rotary_response_Tests(unittest.TestCase):
 
         def cmdString(name):
             return "LD %s DV" % name
+
         self.rd.responseFunction(cmdString(n1))
         cd = self.rd.currentDevice
         cmd = "LD 5.2 NSP"
@@ -156,12 +155,12 @@ class rotary_response_Tests(unittest.TestCase):
         cd = self.rd.currentDevice
         cd.currentPosition = 0
         timeItShouldTake = 0.02
-        cd.speedInDegPerSecond = 100/timeItShouldTake
+        cd.speedInDegPerSecond = 100 / timeItShouldTake
 
         self.rd.responseFunction("LD 100 DG NP GO")
         response = self.rd.responseFunction("BU")
         self.assertEqual(response, "1")
-        time.sleep(timeItShouldTake*1.3)  # Need to agree with slowDown in update function.
+        time.sleep(timeItShouldTake * 1.3)  # Need to agree with slowDown in update function.
         response = self.rd.responseFunction("BU")
         self.assertNotEqual(cd.currentPosition, 0)
         self.assertEqual(response, "0")
@@ -171,7 +170,7 @@ class rotary_response_Tests(unittest.TestCase):
         cd = self.rd.currentDevice
         cd.currentPosition = 0
         timeItShouldTake = 0.08
-        cd.speedInDegPerSecond = 100/timeItShouldTake
+        cd.speedInDegPerSecond = 100 / timeItShouldTake
 
         self.rd.responseFunction("LD 100 DG NP GO")
         time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
@@ -268,7 +267,7 @@ class OneRotaryDisc_tests(unittest.TestCase):
     def test_that_movement_takes_time(self):
         self.dev.currentPosition = 0
         timeItShouldTake = 0.8
-        self.dev.speedInDegPerSecond = 100/timeItShouldTake
+        self.dev.speedInDegPerSecond = 100 / timeItShouldTake
 
         self.dev.start_movement(100)
         time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.

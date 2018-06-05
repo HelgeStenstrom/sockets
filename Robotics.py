@@ -115,8 +115,8 @@ class RotaryDiscBySocket(SocketInstrument):
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
         "en re": "vad den matchar",
-        "\*IDN\?":   Idn_response,
-        "\*OPT\?":   OPT_response,
+        "\*IDN\?": Idn_response,
+        "\*OPT\?": OPT_response,
         "^CP\ *": CP_response,
         "^WL\ *": WL_response,
         "^CL\ *": CL_response,
@@ -402,7 +402,7 @@ class MaturoNCD(SocketInstrument):
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.
         "en re": "vad den matchar",
-        "\*IDN\?":   Idn_response,
+        "\*IDN\?": Idn_response,
         "^CP\ *": CP_response,
         "^RP\ *": RP_response,
         "^WL\ *": WL_response,
@@ -494,7 +494,6 @@ class Optimus(SocketInstrument):
         idnString = self.vendor + ', ' + self.model + ', ' + self.serial + ', ' + self.firmwareRevision
         return idnString
 
-
     def commandFor(self, commandString):
         rePatterns = self.patterns_to_select_command
         for rePattern in rePatterns:
@@ -512,8 +511,9 @@ class Optimus(SocketInstrument):
 
     def statusResponse(self):
         return "%d, %d, %.1f (%d), %.1f (%d), %.1f (%d), %.1f (%d)" % (self.sensorPower, self.motorPower,
-                                              self.x, self.xStatus, self.y, self.yStatus,
-                                              self.phi, self.phiStatus, self.theta, self.thetaStatus)
+                                                                       self.x, self.xStatus, self.y, self.yStatus,
+                                                                       self.phi, self.phiStatus, self.theta,
+                                                                       self.thetaStatus)
 
     def zeroResponse(self):
         # TODO: Remove, not present in Optimus.
@@ -547,7 +547,6 @@ class Optimus(SocketInstrument):
         # All relevant commands seem to have the number at the second position.
         words = s.split()
         return float(words[1])
-
 
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.

@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 from socketInstrument import SocketInstrument
 
 
@@ -42,17 +40,16 @@ class VotschBase(SocketInstrument):
         # Vt 3 7060: n = 14
         # Vc 3 7060: n = 12
         n = {'Vc': 12, 'Vt': 14}[self.CcType]
-        response = self.decimal(
-            self.actualTemperature) + " 0019.8 " + n * "0000.1 " + 32 * "0"  # The calling function theSocket adds + "\r"
+        response = self.decimal(self.actualTemperature) + " 0019.8 " + n * "0000.1 " + 32 * "0"
+        # The calling function theSocket adds + "\r"
         return response
 
     # @abstractmethod
     def setTargetsCommand(self, command):
         raise NotImplementedError
         # TODO: Implement Vc and Vt as subclasses. Raising an error or marking method as abstract makes class abstract.
-        #return ""
 
-    def setSlopeCommand(self, parameters):
+    def setSlopeCommand(self, parameters):  # TODO: Make it actually set slope parameters
         if len(parameters) == 4:
             return "0"
         else:
@@ -67,6 +64,7 @@ Contains multiple lines
 class Vc37060(VotschBase):
 
     def helpText(self):
+        # noinspection PyPep8
         return """STANDARD ASCII 2 PROTOCOL FOR E-STRING AND CHAMBERS WITH 2 CONTROLLED VALUES  
 EXAMPLE OF AN ASCII E-STRING 
 $01E CV01 CV02 SV01 MV01 MV02 MV03 MV04 DO00 DO01 DO02 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31 <CR>
@@ -173,7 +171,7 @@ $01I<CR>
         """
 
     def __init__(self):
-        "Initialize a Vc3 7060 chamber object"
+        """Initialize a Vc3 7060 chamber object"""
         super().__init__()
         self.nominalTemp = 0
         self.actualTemperature = 0
@@ -182,15 +180,14 @@ $01I<CR>
         self.fanSpeed = 0
         self.command = None
         self.CcType = 'Vc'
-
+        self.bits = None
 
     def getActualValues(self):
-        pp = [self.nominalTemp, self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed ] + 9*[0]
+        pp = [self.nominalTemp, self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed] \
+             + 9*[0]
         values = [self.decimal(part) for part in pp]
         response = " ".join(values) + " " + 32 * "0"
         return response
-
-
 
     def setTargetsCommand(self, parts):
         self.command = parts[0]

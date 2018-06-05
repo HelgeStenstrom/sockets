@@ -12,10 +12,9 @@ class vc3_Tests(unittest.TestCase):
         self.chamber.actualHumidity = 0
         self.chamber.fanSpeed = 0
 
-
     def test_command_string_finds_E_command(self):
         # Setup
-        cmd = "$01E 0023.1 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+        cmd = "$01E 0023.1 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
 
         # Exercise
         self.chamber.responseFunction(cmd)
@@ -35,7 +34,7 @@ class vc3_Tests(unittest.TestCase):
 
     def test_set_Nominal_Temp(self):
         # Setup
-        cmd = "$01E 0023.1 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+        cmd = "$01E 0023.1 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
 
         # Exercise
         self.chamber.responseFunction(cmd)
@@ -45,7 +44,7 @@ class vc3_Tests(unittest.TestCase):
 
     def test_set_Nominal_Humidity(self):
         # Setup
-        cmd = "$01E 0023.1 0087.1 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+        cmd = "$01E 0023.1 0087.1 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
 
         # Exercise
         self.chamber.responseFunction(cmd)
@@ -55,7 +54,7 @@ class vc3_Tests(unittest.TestCase):
 
     def test_set_Fan_speed(self):
         # Setup
-        cmd = "$01E 0023.1 0087.1 0080.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+        cmd = "$01E 0023.1 0087.1 0080.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
 
         # Exercise
         self.chamber.responseFunction(cmd)
@@ -65,7 +64,7 @@ class vc3_Tests(unittest.TestCase):
 
     def test_BitsAreCopied(self):
         # Setup
-        cmd = "$01E 0023.1 0087.1 0080.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+        cmd = "$01E 0023.1 0087.1 0080.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
 
         # Exercise
         self.chamber.responseFunction(cmd)
@@ -107,7 +106,7 @@ class vc3_Tests(unittest.TestCase):
         self.assertEqual("0072.1", parts[3])
         self.assertEqual("0068.9", parts[4], "fanspeed")
 
-        self.assertEqual(32*'0', lastPart)
+        self.assertEqual(32 * '0', lastPart)
 
     def test_set_read_roundtrip(self):
         # Setup
@@ -136,7 +135,6 @@ class vc3_Tests(unittest.TestCase):
         self.assertEqual("0", response, "0 means OK")
 
     def test_has_ramped_setpoint_variables(self):
-
         # Exercise
         self.chamber.responseFunction(self.cmd_for_set(27))
         # Verify

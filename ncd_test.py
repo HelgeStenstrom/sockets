@@ -2,7 +2,6 @@ import time
 import unittest
 
 import Robotics
-import socketInstrument
 
 
 class Ncd_Tests(unittest.TestCase):
@@ -144,6 +143,7 @@ class Ncd_response_BackDoor_Tests(unittest.TestCase):
 
         def cmdString(name):
             return "LD %s DV" % name
+
         self.ncd.responseFunction(cmdString(n1))
         cd = self.ncd.currentDevice
         self.assertEqual(cd.speedInDegPerSecond, 4.9)
@@ -166,12 +166,12 @@ class Ncd_response_BackDoor_Tests(unittest.TestCase):
         cd = self.ncd.currentDevice
         cd.currentPosition = 0
         timeItShouldTake = 0.02
-        cd.speedInDegPerSecond = 100/timeItShouldTake
+        cd.speedInDegPerSecond = 100 / timeItShouldTake
 
         self.ncd.responseFunction("LD 100 DG NP GO")
         response = self.ncd.responseFunction("BU")
         self.assertEqual(response, "1")
-        time.sleep(timeItShouldTake*1.3)  # Need to agree with slowDown in update function.
+        time.sleep(timeItShouldTake * 1.3)  # Need to agree with slowDown in update function.
         response = self.ncd.responseFunction("BU")
         self.assertNotEqual(cd.currentPosition, 0)
         self.assertEqual(response, "0")
@@ -181,7 +181,7 @@ class Ncd_response_BackDoor_Tests(unittest.TestCase):
         cd = self.ncd.currentDevice
         cd.currentPosition = 0
         timeItShouldTake = 0.08
-        cd.speedInDegPerSecond = 100/timeItShouldTake
+        cd.speedInDegPerSecond = 100 / timeItShouldTake
 
         self.ncd.responseFunction("LD 100 DG NP GO")
         time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.

@@ -1,9 +1,9 @@
 import unittest
 
 import Robotics
-import socketInstrument
 
 
+# noinspection PyPep8
 class OptimusTests(unittest.TestCase):
     def setUp(self):
         self.box = Robotics.Optimus()
@@ -22,7 +22,6 @@ class OptimusTests(unittest.TestCase):
         self.box.responseFunction("mv_to_zero")
         self.assertEqual((self.box.x, self.box.y, self.box.phi, self.box.theta),
                          (0, 0, 0, 0))
-
 
     def test_that_zero_cmd_sets_zero(self):
         self.box.responseFunction("mv_to_zero")

@@ -1,3 +1,5 @@
+from io import StringIO
+
 import Amplifier
 import Robotics
 import socketInstrument
@@ -8,24 +10,23 @@ import socketMain
 
 # TODO: läs http://stackoverflow.com/questions/31864168/mocking-a-socket-connection-in-python
 
-
-@unittest.skip("Skipping tests that print.")
 class Tests_with_print(unittest.TestCase):
-    # TODO: Find out how to test printouts in PyCharm + Python 3.6, both Mac and Windows
     def setUp(self):
-        pass
+        self.stdOutSave = sys.stdout
+        self.stdErrSave = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
 
     def tearDown(self):
-        pass
+        sys.stdout = self.stdOutSave
+        sys.stderr = self.stdErrSave
 
-    # @unittest.skip("Vill inte ha utskrifter till konsolen.")
     def test_that_printouts_can_be_tested(self):
         print("some text", file=sys.stdout)
         self.assertIn("some text", sys.stdout.getvalue())
         print("some error", file=sys.stderr)
         self.assertIn("some error", sys.stderr.getvalue())
 
-    # @unittest.skip("Vill inte ha utskrifter till konsolen.")
     def test_printing(self):
         # Detta test fungerar bara med PyCharm, inte med stand-alone Python.
         # Det beror på att PyCharm implementerar stdout som en io.StringIO, men det görs inte av en naken Python.
@@ -40,17 +41,16 @@ class main_Tests(unittest.TestCase):
 
         # Försök att undvika utskrift. Verkar inte fungera i PyCharm, troligen för att miljön kräver stdout.
         # Kanske det finns andra sätt i denna miljö.
-        # sys.stdout = StringIO()
-        # sys.stderr = StringIO()
+        self.stdOutSave = sys.stdout
+        self.stdErrSave = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
         pass
 
     def tearDown(self):
-        # sys.stdout = sys.__stdout__
-        # sys.stderr = sys.__stderr__
-        # help(sys.stderr)
-        pass
+        sys.stdout = self.stdOutSave
+        sys.stderr = self.stdErrSave
 
-    # @unittest.skip("Prints to screen, and I don't want that.")
     def test_that_invalid_arguments_raises_SystemExit(self):
 
         sys.argv = ["", "Invalid_argument"]
@@ -62,7 +62,6 @@ class main_Tests(unittest.TestCase):
         sys.argv = ["", "--offset", "3.3", "Invalid_argument"]
         self.assertRaises(SystemExit, socketMain.main)
 
-    # @unittest.skip("Prints to screen, and I don't want that.")
     def test_that_invalid_arguments_raises_SystemExit_in_function(self):
         sys.argv = ["", "Invalid_argument"]
         self.assertRaises(SystemExit, socketMain.instrumentTypeArgument)

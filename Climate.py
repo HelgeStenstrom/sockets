@@ -47,14 +47,14 @@ class VotschBase(SocketInstrument):
             return "'" + command + "' is an unknown command."
 
     def getMovingSetpoint(self):
-        if (self.tempUp == 0 and self.tempDown == 0):
+        if self.tempUp == 0 and self.tempDown == 0:
             return self.nominalTemp
         dtime = time.time() - self.rampStartTime
-        if (self.tempUp > 0):
+        if self.tempUp > 0:
             dtemp = self.tempUp/60 * dtime
             movingSetpoint = self.tempStart + dtemp
             return min(movingSetpoint, self.nominalTemp)
-        if (self.tempDown > 0):
+        if self.tempDown > 0:
             dtemp = - self.tempDown/60 * dtime
             movingSetpoint = self.tempStart + dtemp
             return min(movingSetpoint, self.nominalTemp)
@@ -65,7 +65,10 @@ class VotschBase(SocketInstrument):
         # Vt 3 7060: n = 14
         # Vc 3 7060: n = 12
         n = {'Vc': 12, 'Vt': 14}[self.CcType]
-        response = self.decimal(self.nominalTemp) + " " + self.decimal(self.actualTemperature) + " " +  n * "0000.1 " + 32 * "0"
+        # noinspection PyPep8
+        response = self.decimal(self.nominalTemp) + " " + \
+                   self.decimal(self.actualTemperature) + " " + \
+                   n * "0000.1 " + 32 * "0"
         # The calling function theSocket adds + "\r"
         return response
 
@@ -212,6 +215,7 @@ $01I<CR>
         self.CcType = 'Vc'
 
     def getActualValues(self):
+        # noinspection PyPep8
         pp = [self.getMovingSetpoint(), self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed] \
              + 9*[0]
         values = [self.decimal(part) for part in pp]
@@ -233,11 +237,5 @@ $01I<CR>
         float(parts[6])
         float(parts[7])
         self.bits = parts[8]
-        # self.currentWantedTemp = self.nominalTemp
-        #if self.shouldRampTemp():
-
 
         return "0"
-
-    def QQQshouldRampTemp(self):
-        return self.tempUp != 0 or self.tempDown != 0

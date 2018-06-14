@@ -24,10 +24,10 @@ def toPrintable(unpretty):
 
 class SocketCommunicator(Communicator):
 
-    def __init__(self, respFunction):
+    def __init__(self, resp_function):
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
         self.responseEOL = "\r"
-        self.responseFunction = respFunction
+        self.responseFunction = resp_function
 
     def start(self):
         # DONE: se till att avslutning fungerar snyggare, utan felmeddelanden till terminalen
@@ -70,5 +70,3 @@ class SocketCommunicator(Communicator):
                             print()
                             conn.sendall(response)
                 print("Exited 'with conn'")
-
-

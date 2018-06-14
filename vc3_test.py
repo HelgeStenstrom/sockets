@@ -140,8 +140,8 @@ class vc3_Tests(unittest.TestCase):
         tstart = 20
         tgoal = 40
         tempDiff = tgoal - tstart
-        slope = 6000.0/60.0  # See command below, given in deg/minute. Here: deg/sec
-        tRamp = tempDiff/slope
+        slope = 6000.0 / 60.0  # See command below, given in deg/minute. Here: deg/sec
+        tRamp = tempDiff / slope
         tpartial = 0.25 * tRamp  # Time for 25 % of the ramp
         self.chamber.responseFunction(self.cmd_for_set(tstart))  # Start at 20 degC
         # Pre-validate
@@ -152,7 +152,6 @@ class vc3_Tests(unittest.TestCase):
         self.chamber.responseFunction("$01U 6000.0 0000.0 0000.0 0000.0")  # Up slope 100 deg per second
         self.chamber.responseFunction(self.cmd_for_set(tgoal))  # Go towards 40 degC
 
-
         # Verify
         t1, h = self.temp_hum_nom()
         self.assertLess(t1, tgoal, "Temperature ramp should start at %d." % tstart)
@@ -162,14 +161,11 @@ class vc3_Tests(unittest.TestCase):
         self.assertGreater(t2, tstart, "Temperature ramp should move from %d." % tstart)
         self.assertLess(t2, tgoal, "Temperature should not have reached %d." % tgoal)
 
-        time.sleep(tRamp*2)
+        time.sleep(tRamp * 2)
         t3, h = self.temp_hum_nom()
         self.assertEqual(t3, tgoal, "Temperature should have reached %d by now" % tgoal)
 
-
     # TODO: Test down temp ramping
-
-
 
     @unittest.skip("Test not done.")
     def QQtest_positive_temp_slope(self):

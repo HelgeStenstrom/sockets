@@ -3,7 +3,7 @@ import unittest
 import Climate
 
 
-class votsch_response_Tests(unittest.TestCase):
+class VotschResponseTests(unittest.TestCase):
     def setUp(self):
         self.chamber = Climate.VotschBase()
 
@@ -85,13 +85,3 @@ class votsch_response_Tests(unittest.TestCase):
 
         # Verify
         self.assertEqual("", response, "Return empty string if command not accepted")
-
-    def QQQtest_that_U_starts_rampStartValues(self):
-        # Setup
-        command = "$01U 0000.0 0001.3 0000.0 0002.2"
-
-        # Exercise
-        response = self.chamber.responseFunction(command)
-
-        # Verify
-        self.fail("Test not done")

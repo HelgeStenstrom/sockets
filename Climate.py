@@ -7,12 +7,19 @@ class VotschBase(SocketInstrument):
         super().__init__()
         self.command = None
         self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
-        self.actualTemperature = 27.1
         self.CcType = 'Vc'
+        self.nominalTemp = 0
+        self.actualTemperature = 0
+        self.nominalHumidity = 0
+        self.actualHumidity = 0
+        self.fanSpeed = 0
+        self.command = None
+        self.bits = None
         self.currentWantedTemp = None
         self.tempUp, self.tempDown = 0, 0
         self.humUp, self.humDown = 0, 0
         self.rampStartTime = time.time()
+        self.tempStart = self.nominalTemp
 
     def setTempActual(self, temperature):
         self.actualTemperature = temperature
@@ -39,12 +46,26 @@ class VotschBase(SocketInstrument):
         else:
             return "'" + command + "' is an unknown command."
 
+    def getMovingSetpoint(self):
+        if (self.tempUp == 0 and self.tempDown == 0):
+            return self.nominalTemp
+        dtime = time.time() - self.rampStartTime
+        if (self.tempUp > 0):
+            dtemp = self.tempUp/60 * dtime
+            movingSetpoint = self.tempStart + dtemp
+            return min(movingSetpoint, self.nominalTemp)
+        if (self.tempDown > 0):
+            dtemp = - self.tempDown/60 * dtime
+            movingSetpoint = self.tempStart + dtemp
+            return min(movingSetpoint, self.nominalTemp)
+        raise ValueError("Values must be non-negative")
+
     def getActualValues(self):
         # Depending on Vötsch model, the format is different.
         # Vt 3 7060: n = 14
         # Vc 3 7060: n = 12
         n = {'Vc': 12, 'Vt': 14}[self.CcType]
-        response = self.decimal(self.actualTemperature) + " 0019.8 " + n * "0000.1 " + 32 * "0"
+        response = self.decimal(self.nominalTemp) + " " + self.decimal(self.actualTemperature) + " " +  n * "0000.1 " + 32 * "0"
         # The calling function theSocket adds + "\r"
         return response
 
@@ -188,17 +209,10 @@ $01I<CR>
     def __init__(self):
         """Initialize a Vc3 7060 chamber object"""
         super().__init__()
-        self.nominalTemp = 0
-        self.actualTemperature = 0
-        self.nominalHumidity = 0
-        self.actualHumidity = 0
-        self.fanSpeed = 0
-        self.command = None
         self.CcType = 'Vc'
-        self.bits = None
 
     def getActualValues(self):
-        pp = [self.nominalTemp, self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed] \
+        pp = [self.getMovingSetpoint(), self.actualTemperature, self.nominalHumidity, self.actualHumidity, self.fanSpeed] \
              + 9*[0]
         values = [self.decimal(part) for part in pp]
         response = " ".join(values) + " " + 32 * "0"
@@ -207,6 +221,7 @@ $01I<CR>
     def setTargetsCommand(self, parts):
         self.command = parts[0]
 
+        self.tempStart = self.nominalTemp
         self.nominalTemp = float(parts[1])
         self.actualTemperature = self.nominalTemp + 3
         self.nominalHumidity = float(parts[2])
@@ -218,6 +233,11 @@ $01I<CR>
         float(parts[6])
         float(parts[7])
         self.bits = parts[8]
-        self.currentWantedTemp = self.nominalTemp
+        # self.currentWantedTemp = self.nominalTemp
+        #if self.shouldRampTemp():
+
 
         return "0"
+
+    def QQQshouldRampTemp(self):
+        return self.tempUp != 0 or self.tempDown != 0

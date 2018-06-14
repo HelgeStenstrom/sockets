@@ -4,7 +4,6 @@ import Climate
 
 
 class votsch_response_Tests(unittest.TestCase):
-    # TODO: Move to climate_test
     def setUp(self):
         self.chamber = Climate.VotschBase()
 
@@ -42,3 +41,47 @@ class votsch_response_Tests(unittest.TestCase):
         response = self.chamber.responseFunction(command)
         # TODO: check what the actual response of a Vötsch is, and test for that instead.
         self.assertTrue(response.startswith("ASCII"))
+
+    def test_that_U_sets__temperature_slope_up(self):
+        # Setup
+        command = "$01U 001.2 000.0 000.0 000.0"
+
+        # Exercise
+        response = self.chamber.responseFunction(command)
+
+        # Verify
+        self.assertEqual("0", response, "Return 0 if command accepted")
+        self.assertEqual(1.2, self.chamber.tempUp, "The upward slope variable")
+        self.assertEqual(0, self.chamber.tempDown, "The downward slope variable")
+
+    def test_that_U_sets__temperature_slope_down(self):
+        # Setup
+        command = "$01U 0000.0 0001.3 0000.0 0000.0"
+
+        # Exercise
+        response = self.chamber.responseFunction(command)
+
+        # Verify
+        self.assertEqual("0", response, "Return 0 if command accepted")
+        self.assertEqual(0, self.chamber.tempUp, "The upward slope variable")
+        self.assertEqual(1.3, self.chamber.tempDown, "The downward slope variable")
+
+    def test_that_overspecified_U_is_error(self):
+        # Setup
+        command = "$01U 0001.1 0001.3 0000.0 0000.0"
+
+        # Exercise
+        response = self.chamber.responseFunction(command)
+
+        # Verify
+        self.assertEqual("", response, "Return empty string if command not accepted")
+
+    def test_U_with_parse_error(self):
+        # Setup
+        command = "$01U sfd.1 sdf.3 sdf.0 sfd.0"
+
+        # Exercise
+        response = self.chamber.responseFunction(command)
+
+        # Verify
+        self.assertEqual("", response, "Return empty string if command not accepted")

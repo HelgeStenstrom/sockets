@@ -1,4 +1,5 @@
 from socketInstrument import SocketInstrument
+import time
 
 
 class VotschBase(SocketInstrument):
@@ -9,6 +10,9 @@ class VotschBase(SocketInstrument):
         self.actualTemperature = 27.1
         self.CcType = 'Vc'
         self.currentWantedTemp = None
+        self.tempUp, self.tempDown = 0, 0
+        self.humUp, self.humDown = 0, 0
+        self.rampStartTime = time.time()
 
     def setTempActual(self, temperature):
         self.actualTemperature = temperature
@@ -49,9 +53,20 @@ class VotschBase(SocketInstrument):
         raise NotImplementedError
         # TODO: Implement Vc and Vt as subclasses. Raising an error or marking method as abstract makes class abstract.
 
-    def setSlopeCommand(self, parameters):  # TODO: Make it actually set slope parameters
+    def setSlopeCommand(self, parameters):
+        """Called by the $01U command"""
         if len(parameters) == 4:
-            return "0"
+            try:
+                tu, td, hu, hd = [float(p) for p in parameters]
+                if not (tu == 0 or td == 0):  # Only one slope parameter can be active at a time
+                    raise ValueError
+                if not (hu == 0 or hd == 0):  # Only one slope parameter can be active at a time
+                    raise ValueError
+                self.tempUp, self.tempDown, self.humUp, self.humDown = tu, td, hu, hd
+                self.rampStartTime = time.time()
+                return "0"
+            except ValueError:
+                return ""
         else:
             return ""
 

@@ -169,7 +169,7 @@ class rotary_response_Tests(unittest.TestCase):
     def test_that_movement_takes_time(self):
         cd = self.rd.currentDevice
         cd.currentPosition = 0
-        timeItShouldTake = 0.08
+        timeItShouldTake = 0.2      # Allow 0.2 seconds for this test. Previously at 80 ms, but that made test unstable
         cd.speedInDegPerSecond = 100 / timeItShouldTake
 
         self.rd.responseFunction("LD 100 DG NP GO")

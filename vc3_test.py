@@ -250,6 +250,17 @@ class vt3ExtCab_Tests(unittest.TestCase):
         parts = i_response.split()
         self.assertEqual(bits, parts[-1])
 
+    def test_bad_command(self):
+        # Setup
+        cmd = "$01E 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32*"0"
+
+        # Exercise
+        response = self.chamber.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual("bad command, too short", response)
+
+
     def test_set_read_roundtrip(self):
         # Setup
         chamberOffset = 10

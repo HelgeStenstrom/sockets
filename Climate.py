@@ -278,23 +278,23 @@ class Vt37060ExtCab(Vc37060):
 
     def getActualValues(self):
         """The I-command response contains the following numbers:
-        [0] CV01 nominal chamber temp
-        [1] CV01 actual chamber temp
-        [2] CV02 nominal external temp 1
-        [3] CV02 actual  external temp 1
-        [4] CV03 nominal external temp 2
-        [5] CV03 actual  external temp 2
-        [6] SV01
-        [7] SV02
-        [8] MV01 unused setpoint
-        [9] MV01 not supported
-        [10] MV02 unused setpoint
-        [11] MV02 not supported
-        [12] MV03 unused setpoint
-        [13] MV03 not supported
-        [14] MV04 unused setpoint
-        [15] MV04 not supported
-        [16] bits
+[0] CV01 nominal chamber temp
+[1] CV01 actual chamber temp
+[2] CV02 nominal external temp 1
+[3] CV02 actual  external temp 1
+[4] CV03 nominal external temp 2
+[5] CV03 actual  external temp 2
+[6] SV01
+[7] SV02
+[8] MV01 unused setpoint
+[9] MV01 not supported
+[10] MV02 unused setpoint
+[11] MV02 not supported
+[12] MV03 unused setpoint
+[13] MV03 not supported
+[14] MV04 unused setpoint
+[15] MV04 not supported
+[16] bits DO00 .. DO31
         """
 
         parameters = [self.getMovingSetpoint(), self.actualTemperature,
@@ -417,39 +417,41 @@ none
 
     def setTargetsCommand(self, parts):
         """Interpretation of the E-command
-        There are 9 decimal numbers, starting with [1]
-        [0] $01E
-        [1] CV01 chamber temp
-        [2] CV02 external temp 1
-        [3] CV03 external temp 2
-        [4] SV01 fan speed
-        [5] SV02
-        [6] MV01
-        [7] MV02
-        [8] MV03
-        [9] MV04
-        [10] bits
-
+There are 9 decimal numbers, starting with [1]
+[0] $01E
+[1] CV01 chamber temp
+[2] CV02 external temp 1
+[3] CV03 external temp 2
+[4] SV01 fan speed
+[5] SV02
+[6] MV01
+[7] MV02
+[8] MV03
+[9] MV04
+[10] bits 0..31
         """
         # TODO: Understand which setpoint value is used to control temperature. There can only be one.
-        self.command = parts[0]
+        try:
+            self.command = parts[0]
 
-        self.tempStart = self.nominalTemp
-        self.nominalTemp = float(parts[1])
-        self.actualTemperature = self.nominalTemp + self.chamberTempOffset
-        self.actualCabinetTemp = self.nominalTemp + self.extCabinetTempOffset
-        self.nominalHumidity = float(parts[2])
-        self.actualHumidity = self.nominalHumidity + 5
-        self.fanSpeed = float(parts[4])
-        # five unused parts
-        float(parts[5])
-        float(parts[6])
-        float(parts[7])
-        float(parts[8])
-        float(parts[9])
-        self.bits = parts[10]
+            self.tempStart = self.nominalTemp
+            self.nominalTemp = float(parts[1])
+            self.actualTemperature = self.nominalTemp + self.chamberTempOffset
+            self.actualCabinetTemp = self.nominalTemp + self.extCabinetTempOffset
+            self.nominalHumidity = float(parts[2])
+            self.actualHumidity = self.nominalHumidity + 5
+            self.fanSpeed = float(parts[4])
+            # five unused parts
+            float(parts[5])
+            float(parts[6])
+            float(parts[7])
+            float(parts[8])
+            float(parts[9])
+            self.bits = parts[10]
 
-        self.startBit = (self.bits[1] == "1")
-        self.humidityBit = (self.bits[2] == "1")
+            self.startBit = (self.bits[1] == "1")
+            self.humidityBit = (self.bits[2] == "1")
 
-        return "0"
+            return "0"
+        except IndexError:
+            return "bad command, too short"

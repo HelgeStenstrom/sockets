@@ -111,7 +111,7 @@ class vc3_Tests(unittest.TestCase):
     def test_set_read_roundtrip(self):
         # Setup
         self.chamber.responseFunction("$01U 0000.0 0000.0 0000.0 0000.0")  # no ramping of values
-        cmd = self.cmd_for_set(32.1, 43.2, 67)
+        cmd = cmd_for_set(32.1, 43.2, 67)
 
         # Exercise
         self.chamber.responseFunction(cmd)
@@ -143,14 +143,14 @@ class vc3_Tests(unittest.TestCase):
         slope = 6000.0 / 60.0  # See command below, given in deg/minute. Here: deg/sec
         tRamp = tempDiff / slope
         tpartial = 0.25 * tRamp  # Time for 25 % of the ramp
-        self.chamber.responseFunction(self.cmd_for_set(tstart))  # Start at 20 degC
+        self.chamber.responseFunction(cmd_for_set(tstart))  # Start at 20 degC
         # Pre-validate
         t0, h = self.temp_hum_nom()
         self.assertEqual(tstart, t0)
 
         # Exercise
         self.chamber.responseFunction("$01U 6000.0 0000.0 0000.0 0000.0")  # Up slope 100 deg per second
-        self.chamber.responseFunction(self.cmd_for_set(tgoal))  # Go towards 40 degC
+        self.chamber.responseFunction(cmd_for_set(tgoal))  # Go towards 40 degC
 
         # Verify
         t1, h = self.temp_hum_nom()
@@ -174,20 +174,6 @@ class vc3_Tests(unittest.TestCase):
 
     # ---------------- Helper methods -----------------
 
-    @staticmethod
-    def cmd_for_set(temp, humidity=0.0, fanSpeed=50.0):
-        """
-        Form a set command
-        :param temp: temperature
-        :param humidity:
-        :param fanSpeed:
-        :return: command string including $01E
-        """
-        pp = [temp, humidity, fanSpeed] + 4 * [0]
-        values = [Climate.VotschBase.decimal(part) for part in pp]
-        parameters = " ".join(values) + " " + 32 * "0"
-        cmd = "$01E %s" % parameters
-        return cmd
 
     @staticmethod
     def nominal_values_of_I_resp(response):
@@ -203,8 +189,108 @@ class vc3_Tests(unittest.TestCase):
 
     # -------------- Test helper methods -------------
     def test_help_cmd_for_set(self):
-        actual = self.cmd_for_set(27)
+        actual = cmd_for_set(27)
         expected = "$01E 0027.0 0000.0 0050.0"
         self.assertEqual(expected, actual[:len(expected)], "same start of the command that contains the temperature")
 
     # No helpers at this time
+
+
+def makeBits(temp: bool, humidity: bool) -> str:
+    tbit = "1" if temp else "0"
+    hbit = "1" if humidity else "0"
+    return "0" + tbit + hbit + 29 * "0"
+
+
+class Helper_tests(unittest.TestCase):
+    def test_makeBits(self):
+        self.assertEqual("000" + 29*"0", makeBits(False, False), "all zeros when chamber is off")
+        self.assertEqual("010" + 29*"0", makeBits(True, False), "temp bit is set, others zero")
+        self.assertEqual("001" + 29*"0", makeBits(False, True), "humidity bit is set, others zero")
+
+class vt3ExtCab_Tests(unittest.TestCase):
+
+    def setUp(self):
+        self.chamber = Climate.Vt37060ExtCab()
+
+    def QQtest_that_both_temperatures_are_reported(self):
+        self.fail("Test not done")
+
+    def test_length_of_I_response(self):
+        # Setup
+        
+        # Exercise
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split()
+
+        # Verify
+        self.assertEqual(16+1, len(parts))
+
+    def test_last_part_is_32bits(self):
+        "Test the last part of the reponse to the I-command"
+        # Setup
+
+        # Exercise
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split()
+        lastPart = parts[-1]
+        self.assertEqual(32, len(lastPart))
+
+    def test_temp_onoff_roundtrip(self):
+        # Setup
+        cmd = cmd_for_set(17, 43.2, 67)
+        decimalNumbers  = "0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0"
+        bits = makeBits(True, True)
+        # Exercise
+        command = f"$01E {decimalNumbers} {bits}"
+        e_response = self.chamber.responseFunction(command)
+        i_response = self.chamber.responseFunction("$01I")
+
+        # Verify
+        parts = i_response.split()
+        self.assertEqual(bits, parts[-1])
+
+    def test_set_read_roundtrip(self):
+        # Setup
+        chamberOffset = 10
+        cabinetOffset = 5
+        self.chamber.chamberTempOffset = chamberOffset
+        self.chamber.extCabinetTempOffset = cabinetOffset
+
+        self.chamber.responseFunction("$01U 0000.0 0000.0 0000.0 0000.0")  # no ramping of values
+        tset = 32.1
+        cmd = '$01E 0032.1 0043.2 0000.0 0067.0 0000.0 0000.0 0000.0 0000.0 0000.0 00000000000000000000000000000000'
+
+        # Exercise
+        self.chamber.responseFunction(cmd)
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split(" ")
+        tSetChamber = parts[0]
+        tActChamber = parts[1]
+        tSetCabinet = parts[2]
+        tActCabinet = parts[3]
+        tSetExt2    = parts[4]
+        tActExt2    = parts[5]
+        fanSpeed    = parts[6]
+
+        # Verify
+        self.assertEqual("0032.1", tSetChamber, "temperature read back")
+        self.assertEqual("0042.1", tActChamber, ("actual chamber temperature is tSet + chamberOffset = %g" % (tset + chamberOffset)))
+        self.assertEqual("0032.1", tSetCabinet, "temperature read back")
+        self.assertEqual("0037.1", tActCabinet, ("actual cabinet temperature is tSet + cabinetOffset = %g" % (tset + cabinetOffset)))
+        self.assertEqual("0067.0", fanSpeed, "fan speed read back")
+
+# top level methods, common to classes
+def cmd_for_set(temp, humidity=0.0, fanSpeed=50.0):
+    """
+    Form a set command
+    :param temp: temperature
+    :param humidity:
+    :param fanSpeed:
+    :return: command string including $01E
+    """
+    pp = [temp, humidity, fanSpeed] + 4 * [0]
+    values = [Climate.VotschBase.decimal(part) for part in pp]
+    parameters = " ".join(values) + " " + 32 * "0"
+    cmd = "$01E %s" % parameters
+    return cmd

@@ -208,3 +208,22 @@ class vc3_Tests(unittest.TestCase):
         self.assertEqual(expected, actual[:len(expected)], "same start of the command that contains the temperature")
 
     # No helpers at this time
+
+class otherTests(unittest.TestCase):
+    def test_embedded_eol(self):
+        # Setup
+        longstring = """
+a
+b
+c
+        """
+
+        # Exercise
+        pieces = longstring.splitlines()
+        changed = "\r\n".join(pieces)
+
+        # Expected
+
+        self.assertIn('a\nb\nc', longstring)
+
+        self.assertIn('a\r\nb\r\nc', changed)

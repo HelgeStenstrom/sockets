@@ -459,3 +459,197 @@ There are 9 decimal numbers, starting with [1]
             return "0"
         except IndexError:
             return "bad command, too short"
+
+class Vt37060ExtCabOttawa(Vc37060):
+    """The Vt37060ExtCab is a modified Vt3 7060 with external cabinet. The main chamber
+    has two large holes in the side, to which air ducts to the external cabinet can be connected.
+    The number of parameters of the E-command a I-command are (see help text)
+    E-command: 9 decimal numbers, 32 bits
+    I-command: 16 decimal numbers, 32 bits
+    """
+
+    # TODO: Verify that all known physical Vt37060ExtCab have the same command syntax
+    #
+
+    def __init__(self):
+        super().__init__()
+        self.extCabinetTempOffset = 0.3
+        self.chamberTempOffset = 4.0
+        self.actualCabinetTemp = 0
+
+    def getActualValues(self):
+        """The I-command response contains the following numbers:
+[0] CV01 nominal chamber temp
+[1] CV01 actual chamber temp
+[2] CV02 nominal external temp 1
+[3] CV02 actual  external temp 1
+[4] SV01
+[5] SV02
+[6] MV01 unused setpoint
+[7] MV01 not supported
+[8] MV02 unused setpoint
+[9] MV02 not supported
+[10] MV03 unused setpoint
+[11] MV03 not supported
+[12] MV04 unused setpoint
+[13] MV04 not supported
+[14] bits DO00 .. DO31
+        """
+
+        parameters = [self.getMovingSetpoint(), self.actualTemperature,
+              self.getMovingSetpoint(), self.actualCabinetTemp,
+              self.fanSpeed, self.fanSpeed] \
+             + 8*[0]
+        values = [self.decimal(parameter) for parameter in parameters]
+        # TODO: Replace bits with actual values
+        response = " ".join(values) + " " + self.makeBits(self.startBit, self.humidityBit)
+        return response
+
+    def helpText(self):
+        # noinspection PyPep8
+        helptext = """Simulated Vc3 7060 climate chamber with external cabinet
+ASCII-2 PROTOCOL CONFIGURATION
+
+Example of an ASCII E-String:
+$01E CV01 CV02 CV03 SV01 SV02 MV01 MV02 MV03 MV04 DO00 DO01 DO02 DO03 DO04 DO05 DO06 DO07 DO08 DO09 DO10 DO11 DO12 DO13 DO14 DO15 DO16 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31 <CR>
+
+Description:
+CV01  value min:  -77.0   value max:  182.0   Temperature
+CV02  value min:  -55.0   value max:  150.0   T.external
+CV03  value min:  -55.0   value max:  150.0   T.external
+SV01  value min:    2.0   value max:   30.0   T.shift
+SV02  value min:    2.0   value max:   30.0   T.shift
+MV01  0000.0 unused setpoint
+MV02  0000.0 unused setpoint
+MV03  0000.0 unused setpoint
+MV04  0000.0 unused setpoint
+DO00  unused
+DO01  Start
+DO02  Humidity
+DO03  Cond.protect
+DO04  not supported
+DO05  not supported
+DO06  not supported
+DO07  not supported
+DO08  not supported
+DO09  Custom 1
+DO10  Custom 2
+DO11  Custom 3
+DO12  Custom 4
+DO13  unused
+DO14  unused
+DO15  unused
+DO16  unused
+DO17  unused
+DO18  unused
+DO19  unused
+DO20  unused
+DO21  unused
+DO22  unused
+DO23  unused
+DO24  unused
+DO25  unused
+DO26  unused
+DO27  unused
+DO28  unused
+DO29  unused
+DO30  unused
+DO31  unused
+--------------------------------------------------------------------------------
+Example of  an ASCII I-String:
+$01I<CR>
+CV01 CV01 CV02 CV02 CV03 CV03 SV01 SV02 MV01 MV01 MV02 MV02 MV03 MV03 MV04 MV04 DO00 DO01 DO02 DO03 DO04 DO05 DO06 DO07 DO08 DO09 DO10 DO11 DO12 DO13 DO14 DO15 DO16 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31 <CR>
+
+Description:
+CV01  nominal value Temperature
+CV01  actual value  Temperature
+CV02  nominal value T.external
+CV02  actual value  T.external
+CV03  nominal value T.external
+CV03  actual value  T.external
+SV01  set value     T.shift
+SV02  set value     T.shift
+MV01 unused setpoint
+MV01  not supported
+MV02 unused setpoint
+MV02  not supported
+MV03 unused setpoint
+MV03  not supported
+MV04 unused setpoint
+MV04  not supported
+DO00  unused
+DO01  Start
+DO02  Humidity
+DO03  Cond.protect
+DO04  not supported
+DO05  not supported
+DO06  not supported
+DO07  not supported
+DO08  not supported
+DO09  Custom 1
+DO10  Custom 2
+DO11  Custom 3
+DO12  Custom 4
+DO13  unused
+DO14  unused
+DO15  unused
+DO16  unused
+DO17  unused
+DO18  unused
+DO19  unused
+DO20  unused
+DO21  unused
+DO22  unused
+DO23  unused
+DO24  unused
+DO25  unused
+DO26  unused
+DO27  unused
+DO28  unused
+DO29  unused
+DO30  unused
+DO31  unused
+--------------------------------------------------------------------------------
+Configured Messages:
+none
+"""
+        return "\r\n".join(helptext.splitlines())
+
+    def setTargetsCommand(self, parts):
+        """Interpretation of the E-command
+There are 9 decimal numbers, starting with [1]
+[0] $01E
+[1] CV01 chamber temp
+[2] CV02 external temp 1
+[3] CV03 external temp 2
+[4] SV01 fan speed
+[5] SV02
+[6] MV01
+[7] MV02
+[8] MV03
+[9] MV04
+[10] bits 0..31
+        """
+        # TODO: Understand which setpoint value is used to control temperature. There can only be one.
+        try:
+            self.command = parts[0]
+
+            self.tempStart = self.nominalTemp
+            self.nominalTemp = float(parts[1])
+            self.actualTemperature = self.nominalTemp + self.chamberTempOffset
+            self.actualCabinetTemp = self.nominalTemp + self.extCabinetTempOffset
+            self.nominalHumidity = float(parts[2])
+            self.actualHumidity = self.nominalHumidity + 5
+            self.fanSpeed = float(parts[3])
+            # five unused parts
+            float(parts[5])
+            float(parts[6])
+            float(parts[7])
+            self.bits = parts[8]
+
+            self.startBit = (self.bits[1] == "1")
+            self.humidityBit = (self.bits[2] == "1")
+
+            return "0"
+        except IndexError:
+            return "bad command, too short"

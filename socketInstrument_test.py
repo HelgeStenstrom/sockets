@@ -1,6 +1,7 @@
 from io import StringIO
 
 import Amplifier
+import Climate
 import Robotics
 import socketInstrument
 import unittest
@@ -80,6 +81,17 @@ class main_Tests(unittest.TestCase):
         sys.argv = ["", "Optimus"]
         instrument = socketMain.instrumentTypeArgument()
         self.assertIsInstance(instrument, Robotics.Optimus)
+
+    def test_cmd_line_argument_Vt3ExtCab(self):
+        sys.argv = ["", "Vt37060ExtCab"]
+        instrument = socketMain.instrumentTypeArgument()
+        self.assertIsInstance(instrument, Climate.Vt37060ExtCab)
+
+    def test_cmd_line_argument_Vt3ExtCabOttawa(self):
+        sys.argv = ["", "Vt37060ExtCabOttawa"]
+        instrument = socketMain.instrumentTypeArgument()
+        self.assertIsInstance(instrument, Climate.Vt37060ExtCabOttawa)
+
 
 
 class function_Tests(unittest.TestCase):

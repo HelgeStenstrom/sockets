@@ -228,9 +228,6 @@ class vt3ExtCab_Tests(unittest.TestCase):
     def setUp(self):
         self.chamber = Climate.Vt37060ExtCab()
 
-    def QQtest_that_both_temperatures_are_reported(self):
-        self.fail("Test not done")
-
     def test_length_of_I_response(self):
         # Setup
 
@@ -306,6 +303,85 @@ class vt3ExtCab_Tests(unittest.TestCase):
         self.assertEqual("0037.1", tActCabinet,
                          ("actual cabinet temperature is tSet + cabinetOffset = %g" % (tset + cabinetOffset)))
         self.assertEqual("0067.0", fanSpeed, "fan speed read back")
+
+class vt3ExtCabOttawa_Tests(unittest.TestCase):
+    def setUp(self):
+        self.chamber = Climate.Vt37060ExtCabOttawa()
+
+    def test_length_of_I_response(self):
+        # Setup
+
+        # Exercise
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split()
+
+        # Verify
+        self.assertEqual(14 + 1, len(parts))
+
+    def test_last_part_is_32bits(self):
+        "Test the last part of the reponse to the I-command"
+        # Setup
+
+        # Exercise
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split()
+        lastPart = parts[-1]
+        self.assertEqual(32, len(lastPart))
+
+    def test_temp_onoff_roundtrip(self):
+        # Setup
+        decimalNumbers = "0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0"
+        bits = makeBits(True, True)
+        # Exercise
+        command = f"$01E {decimalNumbers} {bits}"
+        e_response = self.chamber.responseFunction(command)
+        i_response = self.chamber.responseFunction("$01I")
+
+        # Verify
+        parts = i_response.split()
+        self.assertEqual(bits, parts[-1])
+
+    def test_bad_command(self):
+        # Setup
+        cmd = "$01E 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
+
+        # Exercise
+        response = self.chamber.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual("bad command, too short", response)
+
+    def test_set_read_roundtrip(self):
+        # Setup
+        chamberOffset = 10
+        cabinetOffset = 5
+        self.chamber.chamberTempOffset = chamberOffset
+        self.chamber.extCabinetTempOffset = cabinetOffset
+
+        self.chamber.responseFunction("$01U 0000.0 0000.0 0000.0 0000.0")  # no ramping of values
+        tset = 32.1
+        cmd = '$01E 0032.1 0043.2 0067.0 0000.0 0000.0 0000.0 0000.0 01000000000000000000000000000000'
+
+        # Exercise
+        self.chamber.responseFunction(cmd)
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split(" ")
+        tSetChamber = parts[0]
+        tActChamber = parts[1]
+        tSetCabinet = parts[2]
+        tActCabinet = parts[3]
+        fanSpeed = parts[4]
+        bits = parts[-1]
+
+        # Verify
+        self.assertEqual("0032.1", tSetChamber, "temperature read back")
+        self.assertEqual("0042.1", tActChamber,
+                         ("actual chamber temperature is tSet + chamberOffset = %g" % (tset + chamberOffset)))
+        self.assertEqual("0032.1", tSetCabinet, "temperature read back")
+        self.assertEqual("0037.1", tActCabinet,
+                         ("actual cabinet temperature is tSet + cabinetOffset = %g" % (tset + cabinetOffset)))
+        self.assertEqual("0067.0", fanSpeed, "fan speed read back")
+        self.assertEqual("01000000000000000000000000000000", bits)
 
 
 # top level methods, common to classes

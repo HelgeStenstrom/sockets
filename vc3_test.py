@@ -209,6 +209,121 @@ class vc3_Tests(unittest.TestCase):
 
     # No helpers at this time
 
+
+def makeBits(temp: bool, humidity: bool) -> str:
+    tbit = "1" if temp else "0"
+    hbit = "1" if humidity else "0"
+    return "0" + tbit + hbit + 29 * "0"
+
+
+class Helper_tests(unittest.TestCase):
+    def test_makeBits(self):
+        self.assertEqual("000" + 29 * "0", makeBits(False, False), "all zeros when chamber is off")
+        self.assertEqual("010" + 29 * "0", makeBits(True, False), "temp bit is set, others zero")
+        self.assertEqual("001" + 29 * "0", makeBits(False, True), "humidity bit is set, others zero")
+
+
+class vt3ExtCab_Tests(unittest.TestCase):
+
+    def setUp(self):
+        self.chamber = Climate.Vt37060ExtCab()
+
+    def QQtest_that_both_temperatures_are_reported(self):
+        self.fail("Test not done")
+
+    def test_length_of_I_response(self):
+        # Setup
+
+        # Exercise
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split()
+
+        # Verify
+        self.assertEqual(16 + 1, len(parts))
+
+    def test_last_part_is_32bits(self):
+        "Test the last part of the reponse to the I-command"
+        # Setup
+
+        # Exercise
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split()
+        lastPart = parts[-1]
+        self.assertEqual(32, len(lastPart))
+
+    def test_temp_onoff_roundtrip(self):
+        # Setup
+        cmd = cmd_for_set(17, 43.2, 67)
+        decimalNumbers = "0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0 0001.0"
+        bits = makeBits(True, True)
+        # Exercise
+        command = f"$01E {decimalNumbers} {bits}"
+        e_response = self.chamber.responseFunction(command)
+        i_response = self.chamber.responseFunction("$01I")
+
+        # Verify
+        parts = i_response.split()
+        self.assertEqual(bits, parts[-1])
+
+    def test_bad_command(self):
+        # Setup
+        cmd = "$01E 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 0000.0 " + 32 * "0"
+
+        # Exercise
+        response = self.chamber.responseFunction(cmd)
+
+        # Verify
+        self.assertEqual("bad command, too short", response)
+
+    def test_set_read_roundtrip(self):
+        # Setup
+        chamberOffset = 10
+        cabinetOffset = 5
+        self.chamber.chamberTempOffset = chamberOffset
+        self.chamber.extCabinetTempOffset = cabinetOffset
+
+        self.chamber.responseFunction("$01U 0000.0 0000.0 0000.0 0000.0")  # no ramping of values
+        tset = 32.1
+        cmd = '$01E 0032.1 0043.2 0000.0 0067.0 0000.0 0000.0 0000.0 0000.0 0000.0 00000000000000000000000000000000'
+
+        # Exercise
+        self.chamber.responseFunction(cmd)
+        response = self.chamber.responseFunction("$01I")
+        parts = response.split(" ")
+        tSetChamber = parts[0]
+        tActChamber = parts[1]
+        tSetCabinet = parts[2]
+        tActCabinet = parts[3]
+        tSetExt2 = parts[4]
+        tActExt2 = parts[5]
+        fanSpeed = parts[6]
+
+        # Verify
+        self.assertEqual("0032.1", tSetChamber, "temperature read back")
+        self.assertEqual("0042.1", tActChamber,
+                         ("actual chamber temperature is tSet + chamberOffset = %g" % (tset + chamberOffset)))
+        self.assertEqual("0032.1", tSetCabinet, "temperature read back")
+        self.assertEqual("0037.1", tActCabinet,
+                         ("actual cabinet temperature is tSet + cabinetOffset = %g" % (tset + cabinetOffset)))
+        self.assertEqual("0067.0", fanSpeed, "fan speed read back")
+
+
+# top level methods, common to classes
+def cmd_for_set(temp, humidity=0.0, fanSpeed=50.0):
+    """
+    Form a set command
+    :param temp: temperature
+    :param humidity:
+    :param fanSpeed:
+    :return: command string including $01E
+    """
+    pp = [temp, humidity, fanSpeed] + 4 * [0]
+    values = [Climate.VotschBase.decimal(part) for part in pp]
+    parameters = " ".join(values) + " " + 32 * "0"
+    cmd = "$01E %s" % parameters
+    return cmd
+
+
 class otherTests(unittest.TestCase):
     def test_embedded_eol(self):
         # Setup
@@ -222,8 +337,8 @@ c
         pieces = longstring.splitlines()
         changed = "\r\n".join(pieces)
 
-        # Expected
-
+        # Verify
         self.assertIn('a\nb\nc', longstring)
 
         self.assertIn('a\r\nb\r\nc', changed)
+

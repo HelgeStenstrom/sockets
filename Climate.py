@@ -134,7 +134,7 @@ class Vc37060(VotschBase):
 
     def helpText(self):
         # noinspection PyPep8
-        return """Simulated Vc3 7060 climate chamber.
+        helptext = """Simulated Vc3 7060 climate chamber.
 STANDARD ASCII 2 PROTOCOL FOR E-STRING AND CHAMBERS WITH 2 CONTROLLED VALUES  
 EXAMPLE OF AN ASCII E-STRING 
 $01E CV01 CV02 SV01 MV01 MV02 MV03 MV04 DO00 DO01 DO02 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31 <CR>
@@ -239,6 +239,7 @@ $01I<CR>
 0050.0 0024.6 0080.0 0066.7 0090.0 0090.0 0000.0 0023.8 0000.0 0022.2 0000.0 0025.5 0000.0 0024.4 01100000000000000000000000000000<CR>
 
         """
+        return "\r\n".join(helptext.splitlines())
 
     def setTargetsCommand(self, parts):
         self.command = parts[0]
@@ -310,7 +311,7 @@ class Vt37060ExtCab(Vc37060):
 
     def helpText(self):
         # noinspection PyPep8
-        return """Simulated Vc3 7060 climate chamber with external cabinet
+        helptext = """Simulated Vc3 7060 climate chamber with external cabinet
 ASCII-2 PROTOCOL CONFIGURATION
 
 Example of an ASCII E-String:
@@ -416,6 +417,7 @@ DO31  unused
 Configured Messages:
 none
 """
+        return "\r\n".join(helptext.splitlines())
 
     def setTargetsCommand(self, parts):
         """Interpretation of the E-command

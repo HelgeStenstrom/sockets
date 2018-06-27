@@ -507,18 +507,17 @@ class Vt37060ExtCabOttawa(Vc37060):
 
     def helpText(self):
         # noinspection PyPep8
-        helptext = """Simulated Vc3 7060 climate chamber with external cabinet
+        helptext = """Simulated Vc3 7060 climate chamber with external cabinet, in Ottawa
 ASCII-2 PROTOCOL CONFIGURATION
 
 Example of an ASCII E-String:
-$01E CV01 CV02 CV03 SV01 SV02 MV01 MV02 MV03 MV04 DO00 DO01 DO02 DO03 DO04 DO05 DO06 DO07 DO08 DO09 DO10 DO11 DO12 DO13 DO14 DO15 DO16 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31 <CR>
+$01E CV01 CV02 SV01 MV01 MV02 MV03 MV04 DO00 DO01 DO02 DO03 DO04 DO05 DO06 DO07 DO08 DO09 DO10 DO11 DO12 DO13 DO14 DO15 DO16 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31
+<CR>
 
 Description:
 CV01  value min:  -77.0   value max:  182.0   Temperature
-CV02  value min:  -55.0   value max:  150.0   T.external
-CV03  value min:  -55.0   value max:  150.0   T.external
-SV01  value min:    2.0   value max:   30.0   T.shift
-SV02  value min:    2.0   value max:   30.0   T.shift
+CV02  value min:  -55.0   value max:  150.0   Temperature external
+SV01  value min:   50.0   value max:  100.0   Option
 MV01  0000.0 unused setpoint
 MV02  0000.0 unused setpoint
 MV03  0000.0 unused setpoint
@@ -558,17 +557,16 @@ DO31  unused
 --------------------------------------------------------------------------------
 Example of  an ASCII I-String:
 $01I<CR>
-CV01 CV01 CV02 CV02 CV03 CV03 SV01 SV02 MV01 MV01 MV02 MV02 MV03 MV03 MV04 MV04 DO00 DO01 DO02 DO03 DO04 DO05 DO06 DO07 DO08 DO09 DO10 DO11 DO12 DO13 DO14 DO15 DO16 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25 DO26 DO27 DO28 DO29 DO30 DO31 <CR>
+CV01 CV01 CV02 CV02 SV01 SV01 MV01 MV01 MV02 MV02 MV03 MV03 MV04 MV04 DO00 DO01 DO02 DO03 DO04 DO05 DO06 DO07 DO08 DO09 DO10 DO11 DO12 DO13 DO14 DO15 DO16 DO17 DO18 DO19 DO20 DO21 DO22 DO23 DO24 DO25
+DO26 DO27 DO28 DO29 DO30 DO31 <CR>
 
 Description:
 CV01  nominal value Temperature
 CV01  actual value  Temperature
-CV02  nominal value T.external
-CV02  actual value  T.external
-CV03  nominal value T.external
-CV03  actual value  T.external
-SV01  set value     T.shift
-SV02  set value     T.shift
+CV02  nominal value Temperature external
+CV02  actual value  Temperature external
+SV01  set value     Option
+SV01  set value     Option
 MV01 unused setpoint
 MV01  not supported
 MV02 unused setpoint

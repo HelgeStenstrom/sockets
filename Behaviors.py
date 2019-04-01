@@ -275,7 +275,7 @@ class MaturoNCD(SocketInstrument):
         cd = self.currentDevice
         cd.startPosition = cd.currentPosition
         cd.busy = True
-        normalTarget = self.numberFromInncoCommand(command)
+        normalTarget = self.numberFromCommand(command)
         adjust = self.adjustment(normalTarget)
         cd.targetPosition = normalTarget + adjust
         cd.movementStartTime = time.time()
@@ -343,7 +343,7 @@ class MaturoNCD(SocketInstrument):
 
     def LD_SP_response(self):
         """"new numeric speed"""
-        self.currentDevice.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
+        self.currentDevice.speedInDegPerSecond = self.numberFromCommand(self.command)
         return ""
 
     def LD_dev_DV_response(self):
@@ -358,14 +358,14 @@ class MaturoNCD(SocketInstrument):
     def LD_x_DG_WL_response(self):
         command = self.command
         cd = self.currentDevice
-        limit = self.numberFromInncoCommand(command)
+        limit = self.numberFromCommand(command)
         cd.limit_clockwise = limit
         return ""
 
     def LD_x_DG_CL_response(self):
         command = self.command
         cd = self.currentDevice
-        limit = self.numberFromInncoCommand(command)
+        limit = self.numberFromCommand(command)
         cd.limit_anticlockwise = limit
         return ""
 
@@ -399,27 +399,6 @@ class MaturoNCD(SocketInstrument):
     def badCommand():
         return "E - x"
 
-    patterns_to_select_command = {
-        # Just enough to recognize which command is being sent. Extraction of values is done in other places.
-        "en re": "vad den matchar",
-        "\*IDN\?": Idn_response,
-        "^CP\ *": CP_response,
-        "^RP\ *": RP_response,
-        "^WL\ *": WL_response,
-        "^CL\ *": CL_response,
-        "^SP": SP_response,
-        "^ST": ST_response,
-        "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
-        "LD [-]?\d+(\.\d+)? DG WL": LD_x_DG_WL_response,
-        "LD [-]?\d+(\.\d+)? DG CL": LD_x_DG_CL_response,
-        "LD \d DV": LD_dev_DV_response,
-        "^BU(\ )*": BU_Response,
-        "LD [-]?\d+(\.\d+)? SP": LD_SP_response,
-        "PH": PH_response,
-        "PV": PV_response,
-        "P\?": P_response
-    }
-
     def commandFor(self, commandString):
         rePatterns = self.patterns_to_select_command
         for rePattern in rePatterns:
@@ -439,7 +418,7 @@ class MaturoNCD(SocketInstrument):
         return self.badCommand()
 
     @staticmethod
-    def numberFromInncoCommand(s):
+    def numberFromCommand(s):
         """Extract a number from a command string such as 'LD -123.4 NP GO'. """
 
         # All relevant Innco Commands seem to have the number at the second position.
@@ -473,6 +452,27 @@ class MaturoNCD(SocketInstrument):
         # self.limit_clockwise = 90
         # self.limit_anticlockwise = -90
         self.currentDevice = self.attachedDevices[2]
+
+    patterns_to_select_command = {
+        # Just enough to recognize which command is being sent. Extraction of values is done in other places.
+        "en re": "vad den matchar",
+        "\*IDN\?": Idn_response,
+        "^CP\ *": CP_response,
+        "^RP\ *": RP_response,
+        "^WL\ *": WL_response,
+        "^CL\ *": CL_response,
+        "^SP": SP_response,
+        "^ST": ST_response,
+        "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
+        "LD [-]?\d+(\.\d+)? DG WL": LD_x_DG_WL_response,
+        "LD [-]?\d+(\.\d+)? DG CL": LD_x_DG_CL_response,
+        "LD \d DV": LD_dev_DV_response,
+        "^BU(\ )*": BU_Response,
+        "LD [-]?\d+(\.\d+)? SP": LD_SP_response,
+        "PH": PH_response,
+        "PV": PV_response,
+        "P\?": P_response
+    }
 
 
 class Optimus(SocketInstrument):

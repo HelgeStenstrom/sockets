@@ -2,7 +2,7 @@ from io import StringIO
 
 import Amplifier
 import Climate
-import Robotics
+import Behaviors
 import socketInstrument
 import unittest
 import sys
@@ -70,7 +70,7 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_RotaryDisc(self):
         sys.argv = ["", "RotaryDisc"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, Robotics.RotaryDiscBySocket)
+        self.assertIsInstance(instrument, Behaviors.RotaryDiscBySocket)
 
     def test_cmd_line_argument_Empower(self):
         sys.argv = ["", "Empower"]
@@ -80,7 +80,7 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_Optimus(self):
         sys.argv = ["", "Optimus"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, Robotics.Optimus)
+        self.assertIsInstance(instrument, Behaviors.Optimus)
 
     def test_cmd_line_argument_Vt3ExtCab(self):
         sys.argv = ["", "Vt37060ExtCab"]
@@ -97,7 +97,7 @@ class main_Tests(unittest.TestCase):
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
         command = "LD -123.3 DG NP GO"
-        number = Robotics.RotaryDiscBySocket.numberFromInncoCommand(command)
+        number = Behaviors.RotaryDiscBySocket.numberFromInncoCommand(command)
         self.assertEqual(number, -123.3)
 
     def test_prettyprinting_nonprints(self):
@@ -109,7 +109,7 @@ class function_Tests(unittest.TestCase):
 
 class AntennaStandTests(unittest.TestCase):
     def setUp(self):
-        self.dev = Robotics.AntennaStand("someName")
+        self.dev = Behaviors.AntennaStand("someName")
 
     def test_create_one_device(self):
         self.assertEqual(self.dev.name, 'someName')

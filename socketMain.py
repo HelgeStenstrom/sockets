@@ -11,7 +11,7 @@ import argparse
 
 from Amplifier import PaRsBBA150, PaEmpower
 from Climate import VotschBase, Vc37060, Vt37060ExtCab, Vt37060ExtCabOttawa
-from Robotics import RotaryDiscBySocket, MaturoNCD, Optimus
+from Behaviors import RotaryDiscBySocket, MaturoNCD, Optimus
 
 
 def main():

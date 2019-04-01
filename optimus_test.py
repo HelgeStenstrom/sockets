@@ -1,12 +1,12 @@
 import unittest
 
-import Robotics
+import Behaviors
 
 
 # noinspection PyPep8
 class OptimusTests(unittest.TestCase):
     def setUp(self):
-        self.box = Robotics.Optimus()
+        self.box = Behaviors.Optimus()
 
     # TODO: Update to status format "sensorPower, motorPower, x (xStatus), y (yStatus), phi (phiStatus), theta (thetaStatus)"
     # "7, 8, 12.23 (11), 22.12 (22), 32.12 (33), 42.2 (44)"

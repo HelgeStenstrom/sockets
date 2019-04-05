@@ -1,7 +1,7 @@
 import unittest
 
 import behaviors.OptimusBehavior
-from behaviors import Behaviors
+from behaviors import SubDevice
 
 
 # noinspection PyPep8

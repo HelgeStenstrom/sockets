@@ -2,9 +2,10 @@ from io import StringIO
 
 import Amplifier
 import Climate
+import behaviors.AntennaStand
 import behaviors.InncoBehavior
 import behaviors.OptimusBehavior
-from behaviors import Behaviors
+from behaviors import SubDevice
 import socketInstrument
 import unittest
 import sys
@@ -111,7 +112,7 @@ class function_Tests(unittest.TestCase):
 
 class AntennaStandTests(unittest.TestCase):
     def setUp(self):
-        self.dev = Behaviors.AntennaStand("someName")
+        self.dev = behaviors.AntennaStand.AntennaStand("someName")
 
     def test_create_one_device(self):
         self.assertEqual(self.dev.name, 'someName')

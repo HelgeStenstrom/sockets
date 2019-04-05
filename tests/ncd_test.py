@@ -1,8 +1,10 @@
 import time
 import unittest
 
+import behaviors.AntennaStand
+import behaviors.Axis
 import behaviors.ManturoNcdBehavior
-from behaviors import Behaviors
+from behaviors import SubDevice
 
 
 class Ncd_Tests(unittest.TestCase):
@@ -99,7 +101,7 @@ class Ncd_response_FrontDoor_Tests(unittest.TestCase):
 class Ncd_response_BackDoor_Tests(unittest.TestCase):
     def setUp(self):
         self.ncd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
-        rotDevices = [dev for dev in self.ncd.attachedDevices if isinstance(dev, Behaviors.OneRotaryDisc)]
+        rotDevices = [dev for dev in self.ncd.attachedDevices if isinstance(dev, behaviors.Axis.Axis)]
         self.ncd.currentDevice = rotDevices[0]
 
     def tearDown(self):
@@ -218,7 +220,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def setUp(self):
         self.ncd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
         self.ncd.currentDevice = self.ncd.deviceByName("0")
-        self.assertIsInstance(self.ncd.currentDevice, Behaviors.AntennaStand)
+        self.assertIsInstance(self.ncd.currentDevice, behaviors.AntennaStand.AntennaStand)
 
     def test_polarization_commands(self):
         self.ncd.responseFunction("PV")
@@ -232,7 +234,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def test_sp_command_on_antenna_stand(self):
         antennaStand = self.ncd.deviceByName("0")
         # Precondition
-        self.assertIsInstance(antennaStand, Behaviors.AntennaStand, "we need an AntennaStand for the test")
+        self.assertIsInstance(antennaStand, behaviors.AntennaStand.AntennaStand, "we need an AntennaStand for the test")
 
         self.ncd.currentDevice = antennaStand
         response = self.ncd.responseFunction("SP?")
@@ -241,7 +243,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def test_pol_command_on_rotary_disc(self):
         ttDevice = self.ncd.deviceByName("1")
         # Precondition
-        self.assertIsInstance(ttDevice, Behaviors.OneRotaryDisc, "we need a OneRotaryDisc for the test")
+        self.assertIsInstance(ttDevice, behaviors.Axis.Axis, "we need a OneRotaryDisc for the test")
 
         self.ncd.currentDevice = ttDevice
         response = self.ncd.responseFunction("P?")

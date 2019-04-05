@@ -1,8 +1,9 @@
 import time
 import unittest
 
+import behaviors.Axis
 import behaviors.InncoBehavior
-from behaviors import Behaviors
+from behaviors import SubDevice
 
 
 class rotary_Tests(unittest.TestCase):
@@ -230,49 +231,49 @@ class rotary_Functions_tests(unittest.TestCase):
                                "not close enough", 0.1)
 
 
-class OneRotaryDisc_tests(unittest.TestCase):
+class OneAxis_tests(unittest.TestCase):
     def setUp(self):
-        self.dev = Behaviors.OneRotaryDisc('someName')
+        self.axis = behaviors.Axis.Axis('someName')
 
     def tearDown(self):
         pass
 
     def test_create_one_device(self):
-        self.assertEqual(self.dev.name, 'someName')
+        self.assertEqual(self.axis.name, 'someName')
 
     def test_that_it_has_limits(self):
-        self.assertGreater(self.dev.limit_clockwise, self.dev.limit_anticlockwise)
+        self.assertGreater(self.axis.limit_clockwise, self.axis.limit_anticlockwise)
 
     def test_busy_before_and_after_setting_new_position(self):
         # Normally, these are set when the movement is started.
-        self.dev.startPosition = 0
-        self.dev.movementStartTime = time.time()
-        self.dev.targetPosition = 0
+        self.axis.startPosition = 0
+        self.axis.movementStartTime = time.time()
+        self.axis.targetPosition = 0
 
-        self.assertEqual(self.dev.busy, False)
+        self.assertEqual(self.axis.busy, False)
         target = 30
-        self.dev.start_movement(target)
-        self.assertEqual(self.dev.busy, True)
-        self.dev.finalizeMovement()
-        self.assertEqual(self.dev.busy, False)
+        self.axis.start_movement(target)
+        self.assertEqual(self.axis.busy, True)
+        self.axis.finalizeMovement()
+        self.assertEqual(self.axis.busy, False)
 
     def test_that_movement_completion_works(self):
-        self.dev.currentPosition = 0
-        self.dev.targetPosition = 123.4
+        self.axis.currentPosition = 0
+        self.axis.targetPosition = 123.4
 
-        self.dev.finalizeMovement()
+        self.axis.finalizeMovement()
 
-        self.assertFalse(self.dev.busy)
-        self.assertAlmostEqual(self.dev.targetPosition, self.dev.currentPosition, "not close enough", 0.1)
+        self.assertFalse(self.axis.busy)
+        self.assertAlmostEqual(self.axis.targetPosition, self.axis.currentPosition, "not close enough", 0.1)
 
     def test_that_movement_takes_time(self):
-        self.dev.currentPosition = 0
+        self.axis.currentPosition = 0
         timeItShouldTake = 0.8
-        self.dev.speedInDegPerSecond = 100 / timeItShouldTake
+        self.axis.speedInDegPerSecond = 100 / timeItShouldTake
 
-        self.dev.start_movement(100)
+        self.axis.start_movement(100)
         time.sleep(timeItShouldTake * 0.5)  # Half the distance in half the time.
-        self.dev.update()
-        self.assertTrue(self.dev.busy)
-        self.assertGreater(self.dev.currentPosition, 0)
-        self.assertLess(self.dev.currentPosition, 95)
+        self.axis.update()
+        self.assertTrue(self.axis.busy)
+        self.assertGreater(self.axis.currentPosition, 0)
+        self.assertLess(self.axis.currentPosition, 95)

@@ -1,14 +1,10 @@
 import math
 import time
 
-
-class SubDevice:
-    def __init__(self, name):
-        self.name = name
-        self.busy = False
+from behaviors.SubDevice import SubDevice
 
 
-class OneRotaryDisc(SubDevice):
+class Axis(SubDevice):
     def __init__(self, name, slowDown=0):
         super().__init__(name)
         self.currentPosition = 0
@@ -52,19 +48,3 @@ class OneRotaryDisc(SubDevice):
     def finalizeMovement(self):
         self.currentPosition = self.targetPosition
         self.busy = False
-
-
-class AntennaStand(SubDevice):
-    def __init__(self, name):
-        super().__init__(name)
-        self.polarization = "H"
-
-    def setPolarization(self, p):
-        if p not in ['V', 'H']:
-            raise ValueError
-        self.polarization = p
-
-    def getPolarization(self):
-        return self.polarization
-
-

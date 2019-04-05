@@ -1,7 +1,8 @@
 import re
 import time
 
-from behaviors.Behaviors import AntennaStand, OneRotaryDisc
+from behaviors.AntennaStand import AntennaStand
+from behaviors.Axis import Axis
 from socketInstrument import SocketInstrument
 
 
@@ -205,7 +206,7 @@ class MaturoNcdBehavior(SocketInstrument):
 
         # Unit tests rely on devices 1 and 3 being RotaryDiscs, and 0 an AntennaStand.
         self.devNamesToAttach = ['3', '1', '0']
-        self.attachedDevices = [OneRotaryDisc('1'), OneRotaryDisc('3'), AntennaStand('0')]
+        self.attachedDevices = [Axis('1'), Axis('3'), AntennaStand('0')]
         self.command = ""
         self.offset = 0
         self.farDistance = 10

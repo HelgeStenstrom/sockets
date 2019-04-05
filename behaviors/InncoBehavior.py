@@ -1,7 +1,7 @@
 import re
 import time
 
-from behaviors.Behaviors import OneRotaryDisc
+from behaviors.Axis import Axis
 from socketInstrument import SocketInstrument
 
 
@@ -166,7 +166,7 @@ class InncoBehavior(SocketInstrument):
         self.serial = "python"
         self.firmware = "1.02.62"
         self.devNamesToAttach = ['DS1', 'DS2', 'AS3']
-        self.attachedDevices = [OneRotaryDisc(d) for d in self.devNamesToAttach]
+        self.attachedDevices = [Axis(d) for d in self.devNamesToAttach]
         self.command = ""
         self.offset = 0
         self.farDistance = 10

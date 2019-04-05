@@ -1,13 +1,14 @@
 import time
 import unittest
 
-import Behaviors
+import behaviors.InncoBehavior
+from behaviors import Behaviors
 
 
 class rotary_Tests(unittest.TestCase):
     # TODO: testa att offset och random fungerar som kommandots argument.
     def setUp(self):
-        self.rd = Behaviors.RotaryDiscBySocket()
+        self.rd = behaviors.InncoBehavior.InncoBehavior()
 
     def tearDown(self):
         pass
@@ -18,24 +19,24 @@ class rotary_Tests(unittest.TestCase):
         self.assertListEqual(names, self.rd.devNamesToAttach)
 
     def test_that_some_simple_commands_get_parsed(self):
-        self.assertEqual(self.rd.commandFor("*IDN? "), Behaviors.RotaryDiscBySocket.Idn_response)
-        self.assertEqual(self.rd.commandFor("*OPT? "), Behaviors.RotaryDiscBySocket.OPT_response)
-        self.assertEqual(self.rd.commandFor("CP  "), Behaviors.RotaryDiscBySocket.CP_response)
-        self.assertEqual(self.rd.commandFor("BU  ; "), Behaviors.RotaryDiscBySocket.BU_Response)
+        self.assertEqual(self.rd.commandFor("*IDN? "), behaviors.InncoBehavior.InncoBehavior.Idn_response)
+        self.assertEqual(self.rd.commandFor("*OPT? "), behaviors.InncoBehavior.InncoBehavior.OPT_response)
+        self.assertEqual(self.rd.commandFor("CP  "), behaviors.InncoBehavior.InncoBehavior.CP_response)
+        self.assertEqual(self.rd.commandFor("BU  ; "), behaviors.InncoBehavior.InncoBehavior.BU_Response)
 
     def test_that_parametrized_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("LD -123.4 DG NP GO"),
-                         Behaviors.RotaryDiscBySocket.LD_NP_GO_response, "negative fraction")
+                         behaviors.InncoBehavior.InncoBehavior.LD_NP_GO_response, "negative fraction")
         self.assertEqual(self.rd.commandFor("LD 12.3 DG NP GO"),
-                         Behaviors.RotaryDiscBySocket.LD_NP_GO_response, "postitive fraction")
+                         behaviors.InncoBehavior.InncoBehavior.LD_NP_GO_response, "postitive fraction")
         self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
-                         Behaviors.RotaryDiscBySocket.LD_NP_GO_response, "integer argument")
+                         behaviors.InncoBehavior.InncoBehavior.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 12.3 NSP"),
-                         Behaviors.RotaryDiscBySocket.LD_NSP_response, "speed in deg per second")
+                         behaviors.InncoBehavior.InncoBehavior.LD_NSP_response, "speed in deg per second")
         self.assertEqual(self.rd.commandFor("NSP"),
-                         Behaviors.RotaryDiscBySocket.NSP_response, "Returned speed")
+                         behaviors.InncoBehavior.InncoBehavior.NSP_response, "Returned speed")
         self.assertEqual(self.rd.commandFor("LD DS2 DV"),
-                         Behaviors.RotaryDiscBySocket.LD_dev_DV_response, "Select current device")
+                         behaviors.InncoBehavior.InncoBehavior.LD_dev_DV_response, "Select current device")
 
     def test_distance_function(self):
         limit = self.rd.farDistance
@@ -45,7 +46,7 @@ class rotary_Tests(unittest.TestCase):
 
 class rotary_response_Tests(unittest.TestCase):
     def setUp(self):
-        self.rd = Behaviors.RotaryDiscBySocket()
+        self.rd = behaviors.InncoBehavior.InncoBehavior()
         # TODO: välj ett device som "current"
 
     def tearDown(self):
@@ -182,7 +183,7 @@ class rotary_response_Tests(unittest.TestCase):
 
 class Rotary_top_level_function_tests(unittest.TestCase):
     def setUp(self):
-        self.rd = Behaviors.RotaryDiscBySocket()
+        self.rd = behaviors.InncoBehavior.InncoBehavior()
 
     def tearDown(self):
         pass
@@ -195,7 +196,7 @@ class Rotary_top_level_function_tests(unittest.TestCase):
 
 class Rotary_command_tests(unittest.TestCase):
     def setUp(self):
-        self.rd = Behaviors.RotaryDiscBySocket()
+        self.rd = behaviors.InncoBehavior.InncoBehavior()
 
     def tearDown(self):
         pass
@@ -213,7 +214,7 @@ class Rotary_command_tests(unittest.TestCase):
 class rotary_Functions_tests(unittest.TestCase):
 
     def setUp(self):
-        self.rd = Behaviors.RotaryDiscBySocket()
+        self.rd = behaviors.InncoBehavior.InncoBehavior()
 
     def tearDown(self):
         pass

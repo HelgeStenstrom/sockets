@@ -11,7 +11,9 @@ import argparse
 
 from Amplifier import PaRsBBA150, PaEmpower
 from Climate import VotschBase, Vc37060, Vt37060ExtCab, Vt37060ExtCabOttawa
-from Behaviors import RotaryDiscBySocket, MaturoNCD, Optimus
+from behaviors.InncoBehavior import InncoBehavior
+from behaviors.OptimusBehavior import OptimusBehavior
+from behaviors.ManturoNcdBehavior import MaturoNcdBehavior
 
 
 def main():
@@ -39,12 +41,12 @@ def instrumentTypeArgument():
         attachedInstrument = Vt37060ExtCabOttawa()
 
     elif args.InstrumentType in ['RotaryDisc']:
-        attachedInstrument = RotaryDiscBySocket()
+        attachedInstrument = InncoBehavior()
         if args.offset:
             attachedInstrument.offset = args.offset
 
     elif args.InstrumentType == 'NCD':
-        attachedInstrument = MaturoNCD()
+        attachedInstrument = MaturoNcdBehavior()
 
     elif args.InstrumentType in ['BBA150']:
         attachedInstrument = PaRsBBA150()
@@ -53,7 +55,7 @@ def instrumentTypeArgument():
         attachedInstrument = PaEmpower()
 
     elif args.InstrumentType == "Optimus":
-        attachedInstrument = Optimus()
+        attachedInstrument = OptimusBehavior()
 
     else:
         raise NotImplementedError

@@ -2,7 +2,9 @@ from io import StringIO
 
 import Amplifier
 import Climate
-import Behaviors
+import behaviors.InncoBehavior
+import behaviors.OptimusBehavior
+from behaviors import Behaviors
 import socketInstrument
 import unittest
 import sys
@@ -70,7 +72,7 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_RotaryDisc(self):
         sys.argv = ["", "RotaryDisc"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, Behaviors.RotaryDiscBySocket)
+        self.assertIsInstance(instrument, behaviors.InncoBehavior.InncoBehavior)
 
     def test_cmd_line_argument_Empower(self):
         sys.argv = ["", "Empower"]
@@ -80,7 +82,7 @@ class main_Tests(unittest.TestCase):
     def test_cmd_line_argument_Optimus(self):
         sys.argv = ["", "Optimus"]
         instrument = socketMain.instrumentTypeArgument()
-        self.assertIsInstance(instrument, Behaviors.Optimus)
+        self.assertIsInstance(instrument, behaviors.OptimusBehavior.OptimusBehavior)
 
     def test_cmd_line_argument_Vt3ExtCab(self):
         sys.argv = ["", "Vt37060ExtCab"]
@@ -97,7 +99,7 @@ class main_Tests(unittest.TestCase):
 class function_Tests(unittest.TestCase):
     def test_extraction_of_number_from_command(self):
         command = "LD -123.3 DG NP GO"
-        number = Behaviors.RotaryDiscBySocket.numberFromInncoCommand(command)
+        number = behaviors.InncoBehavior.InncoBehavior.numberFromInncoCommand(command)
         self.assertEqual(number, -123.3)
 
     def test_prettyprinting_nonprints(self):

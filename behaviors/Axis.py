@@ -43,7 +43,7 @@ class Axis(SubDevice):
                 self.currentPosition = self.startPosition + slowDown * self.signedSpeed() * elapsed
 
     def signedSpeed(self):
-        return math.copysign(1, self.targetPosition - self.startPosition) * self.speedInDegPerSecond
+        return math.copysign(self.speedInDegPerSecond, self.targetPosition - self.startPosition)
 
     def finalizeMovement(self):
         self.currentPosition = self.targetPosition

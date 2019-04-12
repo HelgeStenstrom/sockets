@@ -47,9 +47,13 @@ class SocketCommunicator(Communicator):
                     self.serveForever(conn)
                 print("Exited 'with conn'")
 
+    # TODO: Make this work correctly for a real stream, not just strings ended by CRLF
     def serveForever(self, conn):
+        loopCount = 0
         while True:
-            data = conn.recv(1024)
+            data = conn.recv(1024) # TODO: Read one character at a time, and sum up the resulting string/list
+            print("%d: '%s'" % (loopCount, data.decode('utf-8')))
+            loopCount += 1
             try:
                 receivedCommand = data.decode('utf-8')
             except UnicodeDecodeError:

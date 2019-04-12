@@ -44,29 +44,32 @@ class SocketCommunicator(Communicator):
                 conn, addr = s.accept()
                 print('Connected by', addr, "\n")
                 with conn:
-                    while True:
-                        data = conn.recv(1024)
-                        try:
-                            receivedCommand = data.decode('utf-8')
-                        except UnicodeDecodeError:
-                            print("UnicodeDecodeError")
-                            continue
-                        receivedText = receivedCommand.strip()
-                        if not data:
-                            print(".", end='', flush=True)
-                            time.sleep(0.1)  # Sleep for 100 ms before continuing
-                            # TODO: See if there is a better way to wait for commands without choking the CPU.
-                            break
-                        print("Received: '%s'" % toPrintable(receivedText))
-                        r = self.responseFunction(data.decode('utf-8'))
-                        response = bytes(r + self.responseEOL,
-                                         'utf-8')  # At least Vötsch doesn't send LF after response string.
-                        # TODO: Use a configurable post-response string that can be overridden.
-
-                        # Don't send empty responses.
-                        if r:
-                            # TODO: Don't print embedded CR characters on the same lime as the length info.
-                            print("Sent:     '%s' (length: %d)" % (r.strip(), len(response)))
-                            print()
-                            conn.sendall(response)
+                    self.serveForever(conn)
                 print("Exited 'with conn'")
+
+    def serveForever(self, conn):
+        while True:
+            data = conn.recv(1024)
+            try:
+                receivedCommand = data.decode('utf-8')
+            except UnicodeDecodeError:
+                print("UnicodeDecodeError")
+                continue
+            receivedText = receivedCommand.strip()
+            if not data:
+                print(".", end='', flush=True)
+                time.sleep(0.1)  # Sleep for 100 ms before continuing
+                # TODO: See if there is a better way to wait for commands without choking the CPU.
+                break
+            print("Received: '%s'" % toPrintable(receivedText))
+            r = self.responseFunction(data.decode('utf-8'))
+            response = bytes(r + self.responseEOL,
+                             'utf-8')  # At least Vötsch doesn't send LF after response string.
+            # TODO: Use a configurable post-response string that can be overridden.
+
+            # Don't send empty responses.
+            if r:
+                # TODO: Don't print embedded CR characters on the same lime as the length info.
+                print("Sent:     '%s' (length: %d)" % (r.strip(), len(response)))
+                print()
+                conn.sendall(response)

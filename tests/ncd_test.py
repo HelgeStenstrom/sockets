@@ -3,40 +3,40 @@ import unittest
 
 import behaviors.AntennaStand
 import behaviors.Axis
-import behaviors.ManturoNcdBehavior
+import behaviors.MaturoNcdBehavior
 from behaviors import SubDevice
 
 
 class Ncd_Tests(unittest.TestCase):
     def setUp(self):
-        self.rd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
+        self.rd = behaviors.MaturoNcdBehavior.MaturoNcdBehavior()
 
     def tearDown(self):
         pass
 
     def test_that_some_simple_commands_get_parsed(self):
-        self.assertEqual(self.rd.commandFor("*IDN? "), behaviors.ManturoNcdBehavior.MaturoNcdBehavior.Idn_response)
-        self.assertEqual(self.rd.commandFor("CP  "), behaviors.ManturoNcdBehavior.MaturoNcdBehavior.CP_response)
-        self.assertEqual(self.rd.commandFor("BU  ; "), behaviors.ManturoNcdBehavior.MaturoNcdBehavior.BU_Response)
+        self.assertEqual(self.rd.commandFor("*IDN? "), behaviors.MaturoNcdBehavior.MaturoNcdBehavior.Idn_response)
+        self.assertEqual(self.rd.commandFor("CP  "), behaviors.MaturoNcdBehavior.MaturoNcdBehavior.CP_response)
+        self.assertEqual(self.rd.commandFor("BU  ; "), behaviors.MaturoNcdBehavior.MaturoNcdBehavior.BU_Response)
 
     def test_that_parametrized_commands_get_parsed(self):
         self.assertEqual(self.rd.commandFor("LD -123.4 DG NP GO"),
-                         behaviors.ManturoNcdBehavior.MaturoNcdBehavior.LD_NP_GO_response, "negative fraction")
+                         behaviors.MaturoNcdBehavior.MaturoNcdBehavior.LD_NP_GO_response, "negative fraction")
         self.assertEqual(self.rd.commandFor("LD 12.3 DG NP GO"),
-                         behaviors.ManturoNcdBehavior.MaturoNcdBehavior.LD_NP_GO_response, "postitive fraction")
+                         behaviors.MaturoNcdBehavior.MaturoNcdBehavior.LD_NP_GO_response, "postitive fraction")
         self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
-                         behaviors.ManturoNcdBehavior.MaturoNcdBehavior.LD_NP_GO_response, "integer argument")
+                         behaviors.MaturoNcdBehavior.MaturoNcdBehavior.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 7 SP"),
-                         behaviors.ManturoNcdBehavior.MaturoNcdBehavior.LD_SP_response, "speed on 1-8 scale")
+                         behaviors.MaturoNcdBehavior.MaturoNcdBehavior.LD_SP_response, "speed on 1-8 scale")
         self.assertEqual(self.rd.commandFor("SP"),
-                         behaviors.ManturoNcdBehavior.MaturoNcdBehavior.SP_response, "Returned speed")
+                         behaviors.MaturoNcdBehavior.MaturoNcdBehavior.SP_response, "Returned speed")
         self.assertEqual(self.rd.commandFor("LD 1 DV"),
-                         behaviors.ManturoNcdBehavior.MaturoNcdBehavior.LD_dev_DV_response, "Select current device")
+                         behaviors.MaturoNcdBehavior.MaturoNcdBehavior.LD_dev_DV_response, "Select current device")
 
 
 class Ncd_response_FrontDoor_Tests(unittest.TestCase):
     def setUp(self):
-        self.ncd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
+        self.ncd = behaviors.MaturoNcdBehavior.MaturoNcdBehavior()
         self.ncd.responseFunction("LD 1 DV")
 
     def tearDown(self):
@@ -100,7 +100,7 @@ class Ncd_response_FrontDoor_Tests(unittest.TestCase):
 
 class Ncd_response_BackDoor_Tests(unittest.TestCase):
     def setUp(self):
-        self.ncd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
+        self.ncd = behaviors.MaturoNcdBehavior.MaturoNcdBehavior()
         rotDevices = [dev for dev in self.ncd.attachedDevices if isinstance(dev, behaviors.Axis.Axis)]
         self.ncd.currentDevice = rotDevices[0]
 
@@ -218,7 +218,7 @@ class Ncd_response_BackDoor_Tests(unittest.TestCase):
 
 class Ncd_AntennaStand_response_tests(unittest.TestCase):
     def setUp(self):
-        self.ncd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
+        self.ncd = behaviors.MaturoNcdBehavior.MaturoNcdBehavior()
         self.ncd.currentDevice = self.ncd.deviceByName("0")
         self.assertIsInstance(self.ncd.currentDevice, behaviors.AntennaStand.AntennaStand)
 
@@ -256,7 +256,7 @@ class Ncd_AntennaStand_response_tests(unittest.TestCase):
 
 class Ncd_top_level_function_tests(unittest.TestCase):
     def setUp(self):
-        self.rd = behaviors.ManturoNcdBehavior.MaturoNcdBehavior()
+        self.rd = behaviors.MaturoNcdBehavior.MaturoNcdBehavior()
 
     def tearDown(self):
         pass

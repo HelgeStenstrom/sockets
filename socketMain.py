@@ -13,7 +13,7 @@ from Amplifier import PaRsBBA150, PaEmpower
 from Climate import VotschBase, Vc37060, Vt37060ExtCab, Vt37060ExtCabOttawa
 from behaviors.InncoBehavior import InncoBehavior
 from behaviors.OptimusBehavior import OptimusBehavior
-from behaviors.ManturoNcdBehavior import MaturoNcdBehavior
+from behaviors.MaturoNcdBehavior import MaturoNcdBehavior
 
 
 def main():

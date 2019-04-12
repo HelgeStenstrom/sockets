@@ -8,6 +8,26 @@ from socketInstrument import SocketInstrument
 
 class MaturoNcdBehavior(SocketInstrument):
 
+    def __init__(self):
+        """Constructor"""
+        super().__init__()
+        self.port = 200  # Maturo standard port.
+        # Since we only use GPIB for the Innco RotaryDisc, this port will only be used for development tests
+        self.vendor = "Maturo"
+        self.model = "NCD"
+        self.serial = "266"
+        # self.firmware = "1.02.62"
+
+        # Unit tests rely on devices 1 and 3 being RotaryDiscs, and 0 an AntennaStand.
+        self.devNamesToAttach = ['3', '1', '0']
+        self.attachedDevices = [Axis('1'), Axis('3'), AntennaStand('0')]
+        self.command = ""
+        self.offset = 0
+        self.farDistance = 10
+        self.maxTries = 5
+        self.triesCount = 0
+        self.currentDevice = self.attachedDevices[2]
+
     # Current problems (related to OneTE VisaConnector):
 
     # The OneTE VisaConnector sends unsupported commands, such as "*SRE 52", "*ESE 61" and "*CLS"
@@ -23,13 +43,10 @@ class MaturoNcdBehavior(SocketInstrument):
     # We want to emulate a GPIB-attached instrument. To which extent can that be made, using sockets?
     # It's the same VisaConnector.
 
-    # DONE: implementera NSP
-    # DONE: implementera LD # NSP
-    # DONE: implementera att förställa målvärde från kommandoraden
 
     def Idn_response(self):
-        # idnString = ','.join([self.vendor, self.model, self.serial, self.firmware])
-        idnString = self.vendor + ',' + self.model + '_' + self.serial
+        """Response to the *IDN? command, returning a string with vendor, model and serial number."""
+        idnString = "%s,%s_%s" % (self.vendor, self.model, self.serial)
         return idnString
 
     def LD_NP_GO_response(self):
@@ -56,7 +73,7 @@ class MaturoNcdBehavior(SocketInstrument):
         return adjust
 
     def isBusy(self):
-        """"the whole unit is busy, because one device is."""
+        """The whole unit is busy, because one device is."""
         devices = self.attachedDevices
         states = [dev.busy for dev in devices]
         busy = any(states)
@@ -75,25 +92,25 @@ class MaturoNcdBehavior(SocketInstrument):
             return "0"
 
     def CP_response(self):
-        """"current position"""
+        """current position"""
         self.currentDevice.update()
         return "%.0f" % self.currentDevice.currentPosition
 
     def RP_response(self):
-        """"current position"""
+        """current position, with decimals"""
         self.currentDevice.update()
         return "%.2f" % self.currentDevice.currentPosition
 
     def WL_response(self):
-        """"clockwise limit"""
+        """clockwise limit"""
         return "%.2f" % self.currentDevice.limit_clockwise
 
     def CL_response(self):
-        """"anticlockwise limit"""
+        """anticlockwise limit"""
         return "%.2f" % self.currentDevice.limit_anticlockwise
 
     def SP_response(self):
-        """"current speed"""
+        """current speed"""
         # self.updatePositionAndBusiness()
         try:
             return "%.0f" % self.currentDevice.speedInDegPerSecond
@@ -105,12 +122,12 @@ class MaturoNcdBehavior(SocketInstrument):
         return ""
 
     def LD_SP_response(self):
-        """"new numeric speed"""
+        """new numeric speed"""
         self.currentDevice.speedInDegPerSecond = self.numberFromCommand(self.command)
         return ""
 
     def LD_dev_DV_response(self):
-        """"set active device"""
+        """set active device"""
         # For now, this returns a plausible value; the index of the selected device in the attached-device list
 
         cmd = self.command
@@ -158,8 +175,7 @@ class MaturoNcdBehavior(SocketInstrument):
         except AttributeError:
             return "E - V"
 
-    @staticmethod
-    def badCommand():
+    def badCommand(self):
         return "E - x"
 
     def commandFor(self, commandString):
@@ -180,8 +196,7 @@ class MaturoNcdBehavior(SocketInstrument):
                 return "E - V"
         return self.badCommand()
 
-    @staticmethod
-    def numberFromCommand(s):
+    def numberFromCommand(self, s):
         """Extract a number from a command string such as 'LD -123.4 NP GO'. """
 
         # All relevant Innco Commands seem to have the number at the second position.
@@ -194,27 +209,6 @@ class MaturoNcdBehavior(SocketInstrument):
             devName = dev.name
             d[devName] = dev
         return d[name]
-
-    def __init__(self):
-        super().__init__()
-        self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
-        # Since we only use GPIB for the Innco RotaryDisc, this port will only be used for development tests
-        self.vendor = "Maturo"
-        self.model = "NCD"
-        self.serial = "266"
-        # self.firmware = "1.02.62"
-
-        # Unit tests rely on devices 1 and 3 being RotaryDiscs, and 0 an AntennaStand.
-        self.devNamesToAttach = ['3', '1', '0']
-        self.attachedDevices = [Axis('1'), Axis('3'), AntennaStand('0')]
-        self.command = ""
-        self.offset = 0
-        self.farDistance = 10
-        self.maxTries = 5
-        self.triesCount = 0
-        # self.limit_clockwise = 90
-        # self.limit_anticlockwise = -90
-        self.currentDevice = self.attachedDevices[2]
 
     patterns_to_select_command = {
         # Just enough to recognize which command is being sent. Extraction of values is done in other places.

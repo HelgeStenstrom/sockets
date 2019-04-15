@@ -32,7 +32,7 @@ class rotary_Tests(unittest.TestCase):
         self.assertEqual(self.rd.commandFor("LD 12 DG NP GO"),
                          behaviors.InncoBehavior.InncoBehavior.LD_NP_GO_response, "integer argument")
         self.assertEqual(self.rd.commandFor("LD 12.3 NSP"),
-                         behaviors.InncoBehavior.InncoBehavior.LD_NSP_response, "speed in deg per second")
+                         behaviors.InncoBehavior.InncoBehavior.LD_ppp_NSP_response, "speed in deg per second")
         self.assertEqual(self.rd.commandFor("NSP"),
                          behaviors.InncoBehavior.InncoBehavior.NSP_response, "Returned speed")
         self.assertEqual(self.rd.commandFor("LD DS2 DV"),

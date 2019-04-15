@@ -94,7 +94,7 @@ class InncoBehavior(SocketInstrument):
         # self.updatePositionAndBusiness()
         return "%.1f" % self.currentDevice.speedInDegPerSecond
 
-    def LD_NSP_response(self):
+    def LD_ppp_NSP_response(self):
         """"new numeric speed"""
         self.currentDevice.speedInDegPerSecond = self.numberFromInncoCommand(self.command)
         return "%.1f" % self.currentDevice.speedInDegPerSecond
@@ -124,7 +124,7 @@ class InncoBehavior(SocketInstrument):
         "LD [-]?\d+(\.\d+)? DG NP GO": LD_NP_GO_response,
         "LD DS. DV": LD_dev_DV_response,  # TODO: regexp som tar olika värden istället för DS1
         "^BU(\ )*": BU_Response,
-        "LD [-]?\d+(\.\d+)? NSP": LD_NSP_response
+        "LD [-]?\d+(\.\d+)? NSP": LD_ppp_NSP_response
     }
 
     def commandFor(self, commandString):

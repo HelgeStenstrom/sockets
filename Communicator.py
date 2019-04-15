@@ -25,7 +25,7 @@ def toPrintable(unpretty):
 class SocketCommunicator(Communicator):
 
     def __init__(self, resp_function):
-        self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        self.port = 2049  # TODO: Take the socket number from the behavior model.
         self.responseEOL = "\r"
         self.responseFunction = resp_function
 

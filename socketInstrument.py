@@ -26,7 +26,7 @@ import Communicator
 
 class SocketInstrument(metaclass=ABCMeta):
     def __init__(self):
-        self.port = 2049  # Vötsch standard port. According to Wikipedia, it's usually used for nfs.
+        self.port = 2049  # Should be overridden by subclass.
         self.responseEOL = "\r"
         self.communicator = Communicator.SocketCommunicator(self.responseFunction)
 

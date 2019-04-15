@@ -12,6 +12,7 @@ class MaturoNcdBehavior(SocketInstrument):
         """Constructor"""
         super().__init__()
         self.port = 200  # Maturo standard port.
+        self.communicator.port = self.port
         # Since we only use GPIB for the Innco RotaryDisc, this port will only be used for development tests
         self.vendor = "Maturo"
         self.model = "NCD"
